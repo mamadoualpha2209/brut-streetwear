@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRUT. — Streetwear</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230a0a0a'/%3E%3Ctext x='32' y='44' font-family='Arial Narrow,Impact,sans-serif' font-weight='700' font-size='36' fill='%23e8ff3c' text-anchor='middle'%3EB.%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#0a0a0a;--paper:#ffffff;--surface:#f3f3f1;--line-soft:#dcdcd8;
+    --accent:#e8ff3c;--accent-ink:#0a0a0a;--grey:#6f6f6b;--danger:#c94b3c;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.display{font-family:'Arial Narrow',Impact,'Haettenschweiler',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:0.01em;line-height:0.92;}
+  .mono{font-family:ui-monospace,'Courier New',Courier,monospace;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;}
+  img{max-width:100%;display:block;}
+
+  .ticker-wrap{background:var(--ink);color:var(--paper);overflow:hidden;white-space:nowrap;border-bottom:2px solid var(--ink);}
+  .ticker{display:inline-block;padding:8px 0;animation:scroll 22s linear infinite;font-family:ui-monospace,'Courier New',monospace;font-size:12px;letter-spacing:0.12em;}
+  .ticker span{margin:0 28px;}
+  @keyframes scroll{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+  header.site{position:sticky;top:0;z-index:40;background:var(--paper);border-bottom:2px solid var(--ink);}
+  .nav{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:16px 24px;gap:16px;}
+  .logo{font-family:'Arial Narrow',Impact,sans-serif;font-size:26px;letter-spacing:0.02em;background:none;border:none;padding:0;}
+  .logo .dot{color:var(--accent);-webkit-text-stroke:1px var(--ink);}
+  nav.links{display:flex;gap:28px;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;align-items:center;}
+  nav.links button{background:none;border:none;font:inherit;letter-spacing:inherit;text-transform:inherit;font-weight:inherit;color:inherit;padding:0;}
+  nav.links button.active{color:var(--grey);text-decoration:underline;text-underline-offset:5px;}
+  nav.links button:hover{color:var(--grey);}
+  .currency-pick{font-family:ui-monospace,monospace;font-size:11px;border:1px solid var(--ink);background:var(--paper);padding:4px 6px;}
+  .nav-right{display:flex;align-items:center;gap:16px;}
+  .icon-btn{background:none;border:none;padding:6px;position:relative;display:flex;align-items:center;}
+  .cart-count{position:absolute;top:-2px;right:-2px;background:var(--accent);color:var(--accent-ink);font-family:ui-monospace,monospace;font-size:10px;font-weight:700;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--ink);}
+
+  .btn{display:inline-flex;align-items:center;gap:10px;background:var(--accent);color:var(--accent-ink);border:2px solid var(--accent);padding:14px 26px;font-weight:700;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;transition:all .15s ease;}
+  .btn:hover{background:transparent;color:var(--ink);border-color:var(--ink);}
+  .btn.dark{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .btn.dark:hover{background:transparent;color:var(--ink);}
+  .btn.ghost{background:transparent;color:var(--ink);border-color:var(--ink);}
+  .btn.ghost:hover{background:var(--ink);color:var(--paper);}
+  .btn:disabled{opacity:0.35;cursor:not-allowed;background:var(--surface);border-color:var(--line-soft);color:var(--grey);}
+
+  .page{max-width:1280px;margin:0 auto;padding:40px 24px 90px;min-height:60vh;}
+  .page-head{margin-bottom:28px;}
+  .page-head h1{font-size:clamp(32px,5vw,56px);margin:0 0 8px;}
+  .page-head .breadcrumb{font-family:ui-monospace,monospace;font-size:11px;color:var(--grey);letter-spacing:0.08em;text-transform:uppercase;}
+  .page-head .breadcrumb button{background:none;border:none;font:inherit;color:inherit;padding:0;cursor:pointer;}
+  .page-head .breadcrumb button:hover{color:var(--ink);text-decoration:underline;}
+
+  .hero{position:relative;background:var(--ink);color:var(--paper);padding:90px 24px 70px;overflow:hidden;}
+  .hero-inner{max-width:1280px;margin:0 auto;position:relative;z-index:2;}
+  .hero-tag{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-ink);font-family:ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:0.1em;padding:6px 12px;transform:rotate(-2deg);margin-bottom:22px;}
+  .hero h1{font-size:clamp(48px,9vw,120px);margin:0;}
+  .hero h1 .outline{-webkit-text-stroke:2px var(--paper);color:transparent;}
+  .hero p.sub{max-width:420px;margin:22px 0 30px;color:#c9c9c4;font-size:15px;line-height:1.6;}
+  .hazard{position:absolute;inset:0;opacity:0.06;background:repeating-linear-gradient(45deg,var(--paper) 0 14px, transparent 14px 28px);pointer-events:none;}
+
+  .cat-strip{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:26px;}
+  .cat-strip .label{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:0.1em;color:var(--grey);margin-right:8px;}
+  .chip{border:2px solid var(--ink);padding:8px 16px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;background:var(--paper);}
+  .chip.active{background:var(--ink);color:var(--paper);}
+  .chip:hover{background:var(--ink);color:var(--paper);}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:var(--ink);border:2px solid var(--ink);}
+  .card{background:var(--paper);position:relative;overflow:hidden;}
+  .card .swatch{aspect-ratio:3/4;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--surface);cursor:pointer;}
+  .card .swatch img{width:100%;height:100%;object-fit:cover;}
+  .card:not(.out) .swatch:hover{background:var(--ink);}
+  .swatch svg{width:44%;transition:transform .25s ease;}
+  .card:not(.out) .swatch:hover svg{transform:scale(1.08);}
+  .card.out .swatch{opacity:0.5;cursor:default;}
+  .badge{position:absolute;top:12px;left:-30px;background:var(--accent);color:var(--accent-ink);font-family:ui-monospace,monospace;font-size:10px;font-weight:700;padding:4px 34px;transform:rotate(-8deg);letter-spacing:0.06em;z-index:3;}
+  .badge.stock-out{background:var(--ink);color:var(--paper);}
+  .card-body{padding:14px 16px 16px;border-top:2px solid var(--ink);}
+  .card-cat{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:0.1em;color:var(--grey);text-transform:uppercase;}
+  .card-name-btn{background:none;border:none;padding:0;text-align:left;cursor:pointer;}
+  .card-name{font-size:14px;font-weight:700;margin:4px 0 6px;text-transform:uppercase;letter-spacing:0.02em;}
+  .card-name-btn:hover .card-name{text-decoration:underline;}
+  .swatch-dots{display:flex;gap:4px;margin-bottom:8px;}
+  .swatch-dot{width:13px;height:13px;border-radius:50%;border:1px solid var(--ink);}
+  .card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .card-price{font-family:ui-monospace,monospace;font-weight:700;font-size:14px;}
+  .old-price{text-decoration:line-through;color:var(--grey);font-weight:400;font-size:12px;}
+  .discount-tag{background:var(--accent);color:var(--accent-ink);font-size:10px;padding:2px 6px;font-weight:700;}
+  .delivery-banner{background:var(--surface);border:1px solid var(--line-soft);padding:12px 16px;font-size:13px;margin:16px 0;}
+  .stock-tag{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border:1px solid var(--ink);}
+  .stock-tag.in{background:var(--accent);}
+  .stock-tag.out{background:var(--surface);color:var(--grey);border-color:var(--line-soft);}
+  .add-btn{border:2px solid var(--ink);background:var(--paper);padding:8px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;transition:all .15s ease;width:100%;margin-top:10px;}
+  .add-btn:hover{background:var(--accent);border-color:var(--accent);}
+  .add-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+  .section-head .count{font-family:ui-monospace,monospace;font-size:12px;color:var(--grey);}
+
+  .product-detail{display:grid;grid-template-columns:1fr 1fr;gap:50px;}
+  .pd-swatch{aspect-ratio:1/1;background:var(--surface);border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .pd-swatch svg{width:40%;}
+  .pd-swatch img{width:100%;height:100%;object-fit:cover;}
+  .pd-info .cat{font-family:ui-monospace,monospace;font-size:12px;color:var(--grey);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;}
+  .pd-info h1{font-size:clamp(28px,4vw,44px);margin:0 0 14px;}
+  .pd-price{font-family:ui-monospace,monospace;font-size:26px;font-weight:700;margin-bottom:16px;}
+  .pd-stock{margin-bottom:18px;}
+  .pd-colors{margin-bottom:20px;}
+  .pd-colors .label{font-family:ui-monospace,monospace;font-size:11px;color:var(--grey);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;}
+  .color-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .accordion{max-width:640px;border-top:2px solid var(--ink);}
+  .accordion-item{border-bottom:1px solid var(--line-soft);}
+  .accordion-q{width:100%;display:flex;justify-content:space-between;align-items:center;gap:16px;background:none;border:none;padding:18px 4px;text-align:left;font-size:15px;font-weight:700;cursor:pointer;}
+  .accordion-q:hover{color:var(--grey);}
+  .accordion-icon{font-family:ui-monospace,monospace;font-size:18px;flex-shrink:0;}
+  .accordion-a{padding:0 4px 18px;color:var(--grey);font-size:14px;line-height:1.7;}
+  .accordion-a.hidden{display:none;}
+  .color-check-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .color-check{display:flex;align-items:center;gap:7px;border:2px solid var(--ink);padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;}
+  .color-check:hover{background:var(--surface);}
+  .color-check input{width:15px;height:15px;}
+  .color-chip{display:flex;align-items:center;gap:6px;border:1px solid var(--ink);padding:5px 10px;font-size:11px;}
+  .pd-desc{color:var(--grey);font-size:14px;line-height:1.7;margin-bottom:28px;max-width:440px;}
+
+  .cart-table{width:100%;border-collapse:collapse;margin-bottom:30px;}
+  .cart-table th{text-align:left;font-family:ui-monospace,monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey);padding-bottom:12px;border-bottom:2px solid var(--ink);}
+  .cart-table td{padding:16px 8px;border-bottom:1px solid var(--line-soft);vertical-align:middle;}
+  .ct-product{display:flex;gap:14px;align-items:center;}
+  .ct-thumb{width:56px;height:66px;background:var(--surface);border:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
+  .ct-thumb svg{width:60%;}
+  .ct-thumb img{width:100%;height:100%;object-fit:cover;}
+  .ct-name{font-weight:700;font-size:13px;text-transform:uppercase;}
+  .qty-row{display:flex;align-items:center;gap:10px;}
+  .qty-btn{width:24px;height:24px;border:1px solid var(--ink);background:none;font-size:14px;display:flex;align-items:center;justify-content:center;}
+  .qty-val{font-family:ui-monospace,monospace;font-size:12px;min-width:16px;text-align:center;}
+  .remove-link{font-family:ui-monospace,monospace;font-size:10px;color:var(--grey);text-decoration:underline;background:none;border:none;cursor:pointer;}
+  .cart-summary{max-width:340px;margin-left:auto;border:2px solid var(--ink);padding:22px;}
+  .total-row{display:flex;justify-content:space-between;font-weight:700;font-size:16px;margin-bottom:16px;text-transform:uppercase;}
+  .total-row .val{font-family:ui-monospace,monospace;}
+  .empty-cart{text-align:center;padding:80px 20px;color:var(--grey);}
+
+  .checkout-grid{display:grid;grid-template-columns:1.2fr 0.8fr;gap:50px;align-items:start;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:6px;}
+  .field input, .field select{width:100%;border:2px solid var(--ink);padding:11px 12px;font-family:inherit;font-size:14px;background:var(--paper);}
+  .field input:focus, .field select:focus{outline:none;background:var(--surface);}
+  .field-row{display:flex;gap:12px;}
+  .field-row .field{flex:1;}
+  .order-recap{border:2px solid var(--ink);padding:22px;}
+  .order-recap h4{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 16px;}
+  .recap-line{display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--line-soft);}
+
+  .pay-options{display:flex;flex-direction:column;gap:10px;}
+  .pay-option{display:flex;align-items:center;gap:10px;border:2px solid var(--ink);padding:12px 14px;cursor:pointer;font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;}
+  .pay-option:hover{background:var(--surface);}
+  .pay-option input{width:16px;height:16px;}
+  .pay-option .pay-icon{margin-left:auto;font-family:ui-monospace,monospace;font-size:10px;color:var(--grey);letter-spacing:0.05em;}
+  .pay-details{border:1px dashed var(--line-soft);padding:16px;margin-top:10px;background:var(--surface);}
+  .pay-details.hidden{display:none;}
+  .pay-note{font-size:11px;color:var(--grey);margin-top:8px;line-height:1.5;}
+
+  .confirm-box{text-align:center;padding:60px 20px;max-width:460px;margin:0 auto;}
+  .confirm-box .icon{font-size:52px;margin-bottom:14px;}
+  .confirm-box .order-id{font-family:ui-monospace,monospace;background:var(--surface);padding:10px 16px;display:inline-block;margin:16px 0;font-size:14px;border:1px solid var(--line-soft);}
+  .confirm-box .pay-summary{font-family:ui-monospace,monospace;font-size:12px;color:var(--grey);margin-top:6px;}
+
+  .admin-grid{display:grid;grid-template-columns:1fr 340px;gap:40px;align-items:start;}
+  .admin-table{width:100%;border-collapse:collapse;}
+  .admin-table th{text-align:left;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey);padding-bottom:10px;border-bottom:2px solid var(--ink);}
+  .admin-table td{padding:12px 8px;border-bottom:1px solid var(--line-soft);font-size:13px;vertical-align:middle;}
+  .admin-prod{display:flex;align-items:center;gap:10px;}
+  .admin-thumb{width:40px;height:48px;background:var(--surface);border:1px solid var(--line-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;}
+  .admin-thumb svg{width:60%;}
+  .admin-thumb img{width:100%;height:100%;object-fit:cover;}
+  .toggle-btn{font-family:ui-monospace,monospace;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:6px 12px;border:2px solid var(--ink);background:var(--paper);}
+  .toggle-btn.in{background:var(--accent);}
+  .toggle-btn.out{background:var(--ink);color:var(--paper);}
+  .del-btn{font-family:ui-monospace,monospace;font-size:10px;color:var(--danger);background:none;border:none;text-decoration:underline;cursor:pointer;margin-left:8px;}
+  .admin-form{border:2px solid var(--ink);padding:22px;margin-bottom:24px;}
+  .admin-form h3{font-size:20px;margin:0 0 4px;}
+  .admin-form .sub{font-family:ui-monospace,monospace;font-size:11px;color:var(--grey);margin-bottom:18px;}
+  .checkbox-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+  .checkbox-row input{width:18px;height:18px;}
+  .checkbox-row label{font-size:13px;font-weight:600;text-transform:none;letter-spacing:0;}
+  .admin-note{background:var(--surface);border:1px solid var(--line-soft);padding:12px 14px;font-size:12px;color:var(--grey);margin-bottom:20px;line-height:1.6;}
+  .img-preview{width:80px;height:96px;border:1px solid var(--line-soft);background:var(--surface);display:flex;align-items:center;justify-content:center;overflow:hidden;margin-top:8px;}
+  .img-preview img{width:100%;height:100%;object-fit:cover;}
+
+  .lock-screen{max-width:380px;margin:80px auto;text-align:center;padding:40px 30px;border:2px solid var(--ink);}
+  .lock-screen h1{font-size:24px;margin:14px 0 6px;}
+  .lock-screen p{color:var(--grey);font-size:13px;margin-bottom:20px;}
+
+  /* ---- Galerie produit + zoom ---- */
+  .pd-gallery{display:flex;flex-direction:column;gap:10px;}
+  .pd-main-wrap{position:relative;}
+  .pd-swatch{aspect-ratio:1/1;background:var(--surface);border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:zoom-in;}
+  .pd-swatch svg{width:40%;}
+  .pd-swatch img{width:100%;height:100%;object-fit:cover;}
+  .pd-zoom-hint{position:absolute;bottom:10px;right:10px;background:var(--ink);color:var(--paper);font-family:ui-monospace,monospace;font-size:10px;padding:5px 9px;letter-spacing:0.05em;pointer-events:none;opacity:0.85;}
+  .pd-thumbs{display:flex;gap:8px;flex-wrap:wrap;}
+  .pd-thumb{width:64px;height:76px;border:2px solid var(--line-soft);background:var(--surface);cursor:pointer;overflow:hidden;padding:0;display:flex;align-items:center;justify-content:center;}
+  .pd-thumb img{width:100%;height:100%;object-fit:cover;}
+  .pd-thumb.active{border-color:var(--ink);}
+  .lightbox{position:fixed;inset:0;background:rgba(10,10,10,0.94);z-index:200;display:none;align-items:center;justify-content:center;padding:30px;cursor:zoom-out;}
+  .lightbox.open{display:flex;}
+  .lightbox img{max-width:92vw;max-height:88vh;object-fit:contain;}
+  .lightbox-close{position:absolute;top:20px;right:24px;background:none;border:2px solid var(--paper);color:var(--paper);width:38px;height:38px;border-radius:50%;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .lightbox-nav{position:absolute;top:50%;transform:translateY(-50%);background:none;border:2px solid var(--paper);color:var(--paper);width:42px;height:42px;border-radius:50%;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .lightbox-prev{left:20px;}
+  .lightbox-next{right:20px;}
+
+  /* ---- Sélecteur de taille ---- */
+  .pd-sizes{margin-bottom:20px;}
+  .pd-sizes .label{font-family:ui-monospace,monospace;font-size:11px;color:var(--grey);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;}
+  .size-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .size-opt{border:2px solid var(--ink);min-width:46px;padding:9px 10px;font-size:12px;font-weight:700;text-align:center;cursor:pointer;background:var(--paper);position:relative;}
+  .size-opt:hover{background:var(--surface);}
+  .size-opt.selected{background:var(--ink);color:var(--paper);}
+  .size-opt.disabled{opacity:0.35;cursor:not-allowed;text-decoration:line-through;background:var(--surface);}
+  .size-opt .size-qty{display:block;font-family:ui-monospace,monospace;font-size:9px;font-weight:400;margin-top:2px;color:var(--grey);}
+  .size-opt.selected .size-qty{color:#c9c9c4;}
+
+  /* ---- Admin : tailles & multi-photos ---- */
+  .admin-sizes-input{display:flex;flex-direction:column;gap:8px;}
+  .admin-size-row{display:flex;gap:8px;align-items:center;}
+  .admin-size-row input[type="text"]{flex:1;}
+  .admin-size-row input[type="number"]{width:80px;}
+  .admin-size-row button{background:none;border:1px solid var(--line-soft);width:30px;height:38px;font-size:16px;cursor:pointer;flex-shrink:0;}
+  .admin-size-row button:hover{border-color:var(--danger);color:var(--danger);}
+  .admin-add-size-btn{border:2px dashed var(--line-soft);background:none;padding:9px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;cursor:pointer;}
+  .admin-add-size-btn:hover{border-color:var(--ink);}
+  .img-preview-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  .img-preview-item{position:relative;width:70px;height:84px;border:1px solid var(--line-soft);background:var(--surface);overflow:hidden;}
+  .img-preview-item img{width:100%;height:100%;object-fit:cover;}
+  .img-preview-item button{position:absolute;top:2px;right:2px;background:var(--ink);color:var(--paper);border:none;width:18px;height:18px;font-size:11px;line-height:1;cursor:pointer;}
+
+  .pagination{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:32px;flex-wrap:wrap;}
+  .page-nav{font-family:ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;background:none;border:2px solid var(--ink);padding:9px 16px;cursor:pointer;}
+  .page-nav:hover{background:var(--ink);color:var(--paper);}
+  .page-nav:disabled{opacity:0.3;cursor:not-allowed;background:none;color:inherit;}
+  .page-nums{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+  .page-num{font-family:ui-monospace,monospace;font-size:12px;font-weight:700;width:30px;height:30px;border:1px solid var(--line-soft);background:var(--paper);cursor:pointer;}
+  .page-num:hover{border-color:var(--ink);}
+  .page-num.active{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+  .order-row{cursor:pointer;}
+  .order-row:hover{background:var(--surface);}
+  .order-detail-row td{padding:0;border-bottom:1px solid var(--line-soft);}
+  .order-detail{display:grid;grid-template-columns:1fr 1fr;gap:18px;font-size:12px;background:var(--surface);padding:16px;}
+  .order-detail-label{font-family:ui-monospace,monospace;font-size:10px;color:var(--grey);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+  @media(max-width:640px){ .order-detail{grid-template-columns:1fr;} }
+
+  .status-badge{font-family:ui-monospace,monospace;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:4px 9px;border:1px solid;display:inline-block;white-space:nowrap;}
+  .status-nouvelle{color:#8a6d00;border-color:#8a6d00;background:#fff6db;}
+  .status-preparation{color:#1d5fa8;border-color:#1d5fa8;background:#e6f0fb;}
+  .status-expediee{color:#1e7a3d;border-color:#1e7a3d;background:#e5f6ea;}
+  .status-annulee{color:var(--danger);border-color:var(--danger);background:#fbeae7;}
+  .status-select{font-family:ui-monospace,monospace;font-size:11px;font-weight:700;text-transform:uppercase;padding:6px 8px;border:2px solid var(--ink);background:var(--paper);cursor:pointer;}
+
+  footer{background:var(--ink);color:var(--paper);padding:60px 24px 24px;margin-top:40px;}
+  .foot-inner{max-width:1280px;margin:0 auto;}
+  .foot-main{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:40px;padding-bottom:40px;}
+  .foot-col h4{font-family:'Arial Narrow',Impact,sans-serif;font-size:15px;letter-spacing:0.04em;margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid #2a2a2a;}
+  .foot-col{display:flex;flex-direction:column;}
+  .foot-col button{background:none;border:none;color:#c9c9c4;font-size:13px;text-align:left;padding:0;margin-bottom:12px;cursor:pointer;}
+  .foot-col button:hover{color:var(--accent);}
+  .foot-social{display:flex;gap:14px;padding:24px 0;border-top:1px solid #2a2a2a;}
+  .social-icon{width:34px;height:34px;border:1px solid #3a3a3a;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#c9c9c4;}
+  .social-icon:hover{border-color:var(--accent);color:var(--accent);}
+  .foot-bottom{display:flex;justify-content:space-between;align-items:center;padding-top:20px;border-top:1px solid #2a2a2a;font-family:ui-monospace,monospace;font-size:11px;color:#8a8a86;flex-wrap:wrap;gap:14px;}
+  .foot-pickers{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .foot-pill{background:none;border:1px solid #3a3a3a;color:#c9c9c4;font-family:ui-monospace,monospace;font-size:11px;padding:7px 12px;cursor:pointer;border-radius:2px;}
+  .foot-pill:hover{border-color:var(--accent);color:var(--accent);}
+  .foot-pill-select{background:var(--ink);border:1px solid #3a3a3a;color:#c9c9c4;font-family:ui-monospace,monospace;font-size:11px;padding:7px 10px;border-radius:2px;}
+  @media(max-width:700px){ .foot-main{grid-template-columns:1fr;} }
+
+  @media(max-width:900px){
+    nav.links{display:none;}
+    .grid{grid-template-columns:repeat(2,1fr);}
+    .product-detail,.checkout-grid,.admin-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="ticker-wrap">
+  <div class="ticker">
+    <span>✕ LIVRAISON DISPONIBLE</span><span>✕ NOUVELLE COLLECTION DISPONIBLE</span><span>✕ STOCK LIMITÉ</span><span>✕ PAIEMENT SÉCURISÉ</span>
+    <span>✕ LIVRAISON DISPONIBLE</span><span>✕ NOUVELLE COLLECTION DISPONIBLE</span><span>✕ STOCK LIMITÉ</span><span>✕ PAIEMENT SÉCURISÉ</span>
+  </div>
+</div>
+
+<header class="site">
+  <div class="nav">
+    <button class="logo" data-route="home">BRUT<span class="dot">.</span></button>
+    <nav class="links" id="navLinks">
+      <button data-route="home" id="navHome">Accueil</button>
+      <button data-route="shop" id="navShop">Boutique</button>
+    </nav>
+    <div class="nav-right">
+      <button class="icon-btn" data-route="cart" aria-label="Panier">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div id="app"></div>
+
+<footer>
+  <div class="foot-inner">
+    <div class="foot-main">
+      <div class="foot-col">
+        <h4 id="footExploreTitle">Explorer</h4>
+        <button data-route="shop">Boutique</button>
+        <button data-route="shop" data-filter="Hoodies">Hoodies</button>
+        <button data-route="shop" data-filter="Chaussures">Chaussures</button>
+        <button data-route="shop" data-filter="Accessoires">Accessoires</button>
+      </div>
+      <div class="foot-col">
+        <h4 id="footPolicyTitle">Politique</h4>
+        <button data-route="accessibility" id="lblAccessibility">Accessibilité</button>
+        <button data-route="cookies" id="lblCookies">Politique de cookies</button>
+        <button data-route="privacy" id="lblPrivacy">Confidentialité</button>
+        <button data-route="shipping" id="lblShipping">Livraison & retours</button>
+        <button data-route="terms" id="lblTerms">Conditions générales</button>
+      </div>
+      <div class="foot-col">
+        <h4 id="footSupportTitle">Support</h4>
+        <button data-route="faq" id="lblFaq">FAQ</button>
+        <button data-route="contact" id="lblContact">Contact</button>
+        <button data-route="returns" id="lblReturns">Retours</button>
+      </div>
+    </div>
+    <div class="foot-social">
+      <a href="https://instagram.com/TON_PSEUDO_INSTAGRAM" target="_blank" rel="noopener noreferrer" class="social-icon" title="Instagram" aria-label="Instagram">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+      </a>
+      <a href="https://tiktok.com/@TON_PSEUDO_TIKTOK" target="_blank" rel="noopener noreferrer" class="social-icon" title="TikTok" aria-label="TikTok">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5" stroke-linecap="round"/><path d="M14 3c0 3 2.5 5 5 5" stroke-linecap="round"/></svg>
+      </a>
+    </div>
+    <div class="foot-bottom">
+      <span id="footCopyright">© 2026 BRUT. — TOUS DROITS RÉSERVÉS</span>
+      <div class="foot-pickers">
+        <button id="proAccessBtn" class="foot-pill">Accès pro</button>
+        <select id="langPick" class="foot-pill-select" title="Choisir la langue">
+          <option value="fr">FR Français</option>
+          <option value="en">EN English</option>
+        </select>
+        <select id="currencyPick" class="foot-pill-select" title="Choisir la devise">
+          <option value="GNF">GNF FG</option>
+          <option value="EUR">EUR €</option>
+          <option value="XOF">XOF CFA</option>
+          <option value="USD">USD $</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ================= ICONS =================
+const ICONS = {
+  hoodie:'<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 4-4 4-8 8-3 3-4 8-4 14h8v22h32V32h8c0-6-1-11-4-14-4-4-8-4-8-8" stroke-linejoin="round"/><path d="M20 10c2 5 6 8 12 8s10-3 12-8" /><circle cx="32" cy="24" r="3"/></svg>',
+  tee:'<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 8 8 16l4 10 6-3v29h28V23l6 3 4-10-14-8c-1 4-4 6-8 6s-7-2-8-6Z" stroke-linejoin="round"/></svg>',
+  jacket:'<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 8 8 18l5 9 6-4v31h26V23l6 4 5-9-14-10c-1 4-4 6-9 6s-8-2-9-6Z" stroke-linejoin="round"/><path d="M32 20v34"/></svg>',
+  pants:'<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h28l2 20-3 28h-9l-4-30-4 30h-9l-3-28Z" stroke-linejoin="round"/><path d="M18 18h28"/></svg>',
+  cap:'<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 34c0-12 10-20 22-20s22 8 22 20" /><path d="M8 34h48l-4 6H12Z" stroke-linejoin="round"/><circle cx="32" cy="16" r="2"/></svg>',
+  bag:'<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><rect x="10" y="22" width="44" height="24" rx="3"/><path d="M10 30h44M22 22v-4a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4v4"/></svg>',
+  sneaker:'<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 44c0-6 4-8 10-10l14-6c4-2 6-6 10-6 3 0 3 4 6 4s4-3 6-1 2 6 6 7v12Z" stroke-linejoin="round"/><path d="M6 44h52"/></svg>',
+  box:'<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 20 32 8l24 12-24 12Z" stroke-linejoin="round"/><path d="M8 20v24l24 12 24-12V20"/><path d="M32 32v24"/></svg>'
+};
+const ICON_KEYS = Object.keys(ICONS);
+const CAT_ICON = {'Hoodies':'hoodie','T-shirts':'tee','Pantalons':'pants','Ensembles':'jacket','Accessoires':'cap','Chaussures':'sneaker','Autres':'box'};
+const CATEGORIES = ['Hoodies','T-shirts','Pantalons','Ensembles','Accessoires','Chaussures','Autres'];
+
+// couleurs reconnues -> code hex pour affichage d'une pastille
+const COLOR_MAP = {
+  'noir':'#111111','blanc':'#ffffff','gris':'#8a8a86','beige':'#d8c9a3','kaki':'#6b6b47',
+  'rouge':'#c0392b','bleu':'#2c3e50','marine':'#1b2838','vert':'#2e7d32','jaune':'#e8d000',
+  'orange':'#e07b39','rose':'#e29ab5','marron':'#6b4226','bordeaux':'#5c1a2b','violet':'#5e3b8a'
+};
+
+// ================= DONNÉES =================
+// sizes: [{size, qty}] — tailles précises avec quantité en stock. Laisser [] pour un article sans déclinaison de taille (le champ "stock" booléen sert alors de statut).
+// images: liste de photos (data URL). La première sert de vignette dans les listes.
+const DEFAULT_PRODUCTS = [
+  {id:'p1', name:'Hoodie Oversize BRUT', cat:'Hoodies', priceGNF:597000, discountPercent:0, badge:'NOUVEAU', featured:true, icon:'hoodie', images:[], stock:true, sizes:[{size:'S',qty:4},{size:'M',qty:9},{size:'L',qty:7},{size:'XL',qty:2}], colors:['Noir','Kaki'], desc:"Coupe oversize, molleton épais 400gsm, capuche doublée."},
+  {id:'p2', name:'Tee Graphique Blackout', cat:'T-shirts', priceGNF:294000, discountPercent:0, badge:null, featured:false, icon:'tee', images:[], stock:true, sizes:[{size:'S',qty:6},{size:'M',qty:10},{size:'L',qty:0},{size:'XL',qty:3}], colors:['Noir','Blanc'], desc:"Coton lourd 220gsm, sérigraphie dos."},
+  {id:'p3', name:'Cargo Pant Technique', cat:'Pantalons', priceGNF:683000, discountPercent:0, badge:null, featured:false, icon:'pants', images:[], stock:true, sizes:[{size:'38',qty:3},{size:'40',qty:5},{size:'42',qty:4},{size:'44',qty:0}], colors:['Noir','Beige'], desc:"Ripstop renforcé, poches cargo latérales."},
+  {id:'p4', name:'Ensemble Jogging Complet', cat:'Ensembles', priceGNF:856000, discountPercent:15, badge:'NOUVEAU', featured:true, icon:'jacket', images:[], stock:false, sizes:[{size:'S',qty:0},{size:'M',qty:0},{size:'L',qty:0}], colors:['Gris','Noir'], desc:"Veste + jogger assortis, molleton gratté."},
+  {id:'p5', name:'Casquette Logo Brodé', cat:'Accessoires', priceGNF:251000, discountPercent:0, badge:null, featured:false, icon:'cap', images:[], stock:true, sizes:[], colors:['Noir'], desc:"6 panneaux, logo brodé 3D."},
+  {id:'p6', name:'Sneakers Low BRUT', cat:'Chaussures', priceGNF:1029000, discountPercent:0, badge:'NOUVEAU', featured:true, icon:'sneaker', images:[], stock:true, sizes:[{size:'40',qty:2},{size:'41',qty:3},{size:'42',qty:5},{size:'43',qty:1},{size:'44',qty:0}], colors:['Blanc','Noir'], desc:"Semelle épaisse, cuir et toile, finitions contrastées."},
+  {id:'p7', name:'Sac Banane Tactique', cat:'Autres', priceGNF:337000, discountPercent:0, badge:null, featured:false, icon:'bag', images:[], stock:true, sizes:[], colors:['Noir'], desc:"Compartiments multiples, sangle réglable."}
+];
+
+// ================= DEVISES =================
+// Les prix sont saisis en GNF (franc guinéen) dans l'admin : c'est la devise de
+// base du site. Les taux ci-dessous servent uniquement à convertir l'affichage
+// pour les visiteurs qui préfèrent voir les prix dans une autre devise — à
+// ajuster manuellement, ce ne sont pas des taux en temps réel.
+const GNF_PER_EUR = 8650; // combien de GNF vaut 1 EUR, sert d'ancrage pour les autres devises
+const CURRENCIES = {
+  GNF:{symbol:'FG', rateFromEUR:8650, decimals:0, position:'after', label:'Franc Guinéen'},
+  EUR:{symbol:'€', rateFromEUR:1,     decimals:2, position:'after', label:'Euro'},
+  XOF:{symbol:'CFA', rateFromEUR:655, decimals:0, position:'after', label:'Franc CFA'},
+  USD:{symbol:'$', rateFromEUR:1.08,  decimals:2, position:'before', label:'Dollar US'}
+};
+const COUNTRY_TO_CURRENCY = {GN:'GNF', SN:'XOF', CI:'XOF', ML:'XOF', BF:'XOF', TG:'XOF', BJ:'XOF', NE:'XOF', US:'USD'};
+let currentCurrency = 'GNF';
+let currentLang = 'fr';
+
+const STRINGS = {
+  fr:{ home:'Accueil', shop:'Boutique', explore:'Explorer', policy:'Politique', support:'Support',
+       proAccess:'Accès pro', copyright:'© 2026 BRUT. — TOUS DROITS RÉSERVÉS',
+       lblAccessibility:'Accessibilité', lblCookies:'Politique de cookies', lblPrivacy:'Confidentialité',
+       lblShipping:'Livraison & retours', lblTerms:'Conditions générales',
+       lblFaq:'FAQ', lblContact:'Contact', lblReturns:'Retours' },
+  en:{ home:'Home', shop:'Shop', explore:'Explore', policy:'Policy', support:'Support',
+       proAccess:'Staff access', copyright:'© 2026 BRUT. — ALL RIGHTS RESERVED',
+       lblAccessibility:'Accessibility Statement', lblCookies:'Cookies Policy', lblPrivacy:'Privacy Policy',
+       lblShipping:'Shipping & Returns Policy', lblTerms:'Terms & Conditions',
+       lblFaq:'FAQs', lblContact:'Contact Us', lblReturns:'Returns' }
+};
+function t(key){ return (STRINGS[currentLang] && STRINGS[currentLang][key]) || STRINGS.fr[key] || key; }
+
+const STATIC_PAGES = {
+  fr:{
+    faq:{title:'FAQ', items:[
+      {q:"Combien de temps prend une livraison ?", a:"En général entre 2 et 14 jours selon ta ville. Un SMS ou un appel te confirme la date de passage du livreur."},
+      {q:"Puis-je retourner un article ?", a:"Oui, sous 14 jours après réception, à condition que l'article soit non porté et dans son emballage d'origine."},
+      {q:"Quels moyens de paiement acceptez-vous ?", a:"Uniquement le paiement à la livraison pour le moment : tu payes en espèces directement au livreur."},
+      {q:"Comment savoir si un article est disponible ?", a:"Chaque fiche produit affiche clairement le statut « En stock » ou « Épuisé ». Les articles épuisés ne peuvent pas être ajoutés au panier."},
+      {q:"Puis-je choisir la couleur de mon article ?", a:"Oui, sur la fiche de chaque produit tu peux cocher une ou plusieurs couleurs disponibles avant de l'ajouter au panier."},
+      {q:"Livrez-vous en dehors de Conakry ?", a:"Oui, la livraison est possible partout où nos livreurs partenaires opèrent — renseigne simplement ta ville lors de la commande."}
+    ]},
+    contact:{title:'Contact', body:[
+      "Une question sur ta commande ou un article ? Écris-nous, on te répond rapidement.",
+      "Email : contact@brut-streetwear.com",
+      "Téléphone / WhatsApp : +224 6XX XX XX XX"
+    ]},
+    returns:{title:'Retours', body:[
+      "Tu as 14 jours à partir de la réception de ta commande pour demander un retour ou un échange.",
+      "Conditions : l'article doit être non porté, non lavé, avec ses étiquettes d'origine, et renvoyé dans son emballage d'origine ou équivalent.",
+      "Ne sont pas repris : les articles soldés/en promotion (sauf défaut), les sous-vêtements et les articles personnalisés.",
+      "Comment procéder : contacte notre support (page Contact) avec ton numéro de commande et le motif du retour. On te confirme l'adresse de retour et la marche à suivre sous 48h.",
+      "Frais de retour : à la charge du client, sauf en cas d'erreur de notre part (mauvais article envoyé, défaut de fabrication) où les frais sont pris en charge par BRUT.",
+      "Remboursement : une fois l'article reçu et vérifié, le remboursement est effectué sous 5 à 10 jours ouvrés, via le même moyen que celui utilisé à la livraison (espèces remises en main propre ou virement / mobile money selon accord avec le support).",
+      "Échange de taille : possible sous les mêmes conditions, dans la limite du stock disponible pour la taille souhaitée."
+    ]},
+    accessibility:{title:'Accessibilité', body:[
+      "Nous travaillons à rendre ce site accessible au plus grand nombre, quels que soient les besoins ou le contexte de navigation.",
+      "Si tu rencontres une difficulté d'accès à une partie du site, contacte-nous, on corrige rapidement."
+    ]},
+    cookies:{title:'Politique de cookies', body:[
+      "Ce site utilise des cookies techniques nécessaires à son fonctionnement (panier, préférences de devise et de langue).",
+      "Aucun cookie publicitaire tiers n'est utilisé sur cette démonstration."
+    ]},
+    privacy:{title:'Confidentialité', body:[
+      "Les informations saisies lors d'une commande (nom, adresse, contact) servent uniquement à traiter cette commande.",
+      "Ce site est une démonstration : les données sont stockées de façon simplifiée et ne doivent pas être considérées comme protégées au niveau production."
+    ]},
+    shipping:{title:'Livraison & retours', body:[
+      "Livraison estimée entre 2 et 14 jours selon la destination.",
+      "Retours acceptés sous 14 jours, article non porté, dans son emballage d'origine."
+    ]},
+    terms:{title:'Conditions générales', body:[
+      "En passant commande sur ce site, tu acceptes nos conditions de vente : prix indiqués toutes taxes comprises, disponibilité soumise au stock affiché.",
+      "Ce site est une démonstration technique ; il ne constitue pas une offre commerciale réelle tant qu'aucun moyen de paiement réel n'y est connecté."
+    ]}
+  },
+  en:{
+    faq:{title:'FAQs', items:[
+      {q:"How long does delivery take?", a:"Usually 2 to 14 days depending on your city. You'll get a text or call to confirm the delivery time."},
+      {q:"Can I return an item?", a:"Yes, within 14 days of delivery, as long as the item is unworn and in its original packaging."},
+      {q:"What payment methods do you accept?", a:"Cash on delivery only at the moment: you pay in cash directly to the courier."},
+      {q:"How do I know if an item is available?", a:"Every product page clearly shows \"In stock\" or \"Sold out\". Sold-out items can't be added to the cart."},
+      {q:"Can I choose the color of my item?", a:"Yes, on each product page you can check one or more available colors before adding it to your cart."},
+      {q:"Do you deliver outside the capital?", a:"Yes, delivery is available anywhere our courier partners operate — just enter your city when ordering."}
+    ]},
+    contact:{title:'Contact Us', body:[
+      "Question about your order or a product? Reach out and we'll get back to you quickly.",
+      "Email: contact@brut-streetwear.com",
+      "Phone / WhatsApp: +224 6XX XX XX XX"
+    ]},
+    returns:{title:'Returns', body:[
+      "You have 14 days from delivery to request a return or exchange.",
+      "Conditions: the item must be unworn, unwashed, with original tags, and returned in its original or equivalent packaging.",
+      "Not eligible: sale/discounted items (unless faulty), underwear, and personalised items.",
+      "How it works: contact our support (Contact page) with your order number and the reason for the return. We'll confirm the return address and next steps within 48h.",
+      "Return shipping: at the customer's expense, unless it's our error (wrong item sent, manufacturing fault), in which case BRUT covers the cost.",
+      "Refunds: once the item is received and checked, refunds are issued within 5 to 10 business days, via the same method used at delivery (cash in person, or bank/mobile money transfer as agreed with support).",
+      "Size exchange: available under the same conditions, subject to stock availability for the requested size."
+    ]},
+    accessibility:{title:'Accessibility Statement', body:[
+      "We work to make this site accessible to as many people as possible, regardless of needs or browsing context.",
+      "If you run into an accessibility issue anywhere on the site, let us know and we'll fix it quickly."
+    ]},
+    cookies:{title:'Cookies Policy', body:[
+      "This site uses technical cookies required for it to function (cart, currency and language preferences).",
+      "No third-party advertising cookies are used on this demo."
+    ]},
+    privacy:{title:'Privacy Policy', body:[
+      "Information entered at checkout (name, address, contact) is only used to process that order.",
+      "This site is a demonstration: data is stored in a simplified way and should not be considered production-grade secure."
+    ]},
+    shipping:{title:'Shipping & Returns Policy', body:[
+      "Estimated delivery between 2 and 5 business days depending on destination.",
+      "Returns accepted within 14 days, unworn, in original packaging."
+    ]},
+    terms:{title:'Terms & Conditions', body:[
+      "By placing an order on this site, you accept our terms of sale: prices shown are all-inclusive, availability subject to displayed stock.",
+      "This site is a technical demo; it is not a real commercial offer until a real payment method is connected."
+    ]}
+  }
+};
+function renderStatic(key){
+  const data = (STATIC_PAGES[currentLang] && STATIC_PAGES[currentLang][key]) || STATIC_PAGES.fr[key];
+  if(data.items){
+    return `
+      <div class="page">
+        <div class="page-head">
+          <div class="breadcrumb"><button data-route="home">${t('home')}</button> / ${data.title}</div>
+          <h1>${data.title}</h1>
+        </div>
+        <div class="accordion">
+          ${data.items.map((it,i)=>`
+            <div class="accordion-item">
+              <button class="accordion-q" data-faq-toggle="${i}">
+                <span>${it.q}</span>
+                <span class="accordion-icon" id="faqIcon${i}">+</span>
+              </button>
+              <div class="accordion-a hidden" id="faqAnswer${i}">${it.a}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+  return `
+    <div class="page">
+      <div class="page-head">
+        <div class="breadcrumb"><button data-route="home">${t('home')}</button> / ${data.title}</div>
+        <h1>${data.title}</h1>
+      </div>
+      <div style="max-width:640px;">
+        ${data.body.map(p=>`<p style="color:var(--grey);font-size:14px;line-height:1.8;margin-bottom:16px;">${p}</p>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function formatPrice(priceGNF){
+  const c = CURRENCIES[currentCurrency] || CURRENCIES.GNF;
+  const amount = priceGNF * (c.rateFromEUR / GNF_PER_EUR);
+  const rounded = c.decimals === 0 ? Math.round(amount).toLocaleString('fr-FR') : amount.toFixed(c.decimals);
+  return c.position === 'before' ? `${c.symbol}${rounded}` : `${rounded} ${c.symbol}`;
+}
+function finalPriceGNF(p){
+  const pct = p.discountPercent || 0;
+  return p.priceGNF * (1 - pct/100);
+}
+function getDeliveryDelay(p){
+  return (p && p.deliveryDelay) ? p.deliveryDelay : settings.deliveryDelay;
+}
+function resizeImageFile(file, maxDim, quality){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onerror = ()=>reject(new Error('lecture impossible'));
+    reader.onload = ()=>{
+      const img = new Image();
+      img.onerror = ()=>reject(new Error('image invalide'));
+      img.onload = ()=>{
+        let w = img.width, h = img.height;
+        if(w > h && w > maxDim){ h = Math.round(h * (maxDim/w)); w = maxDim; }
+        else if(h > maxDim){ w = Math.round(w * (maxDim/h)); h = maxDim; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+        // Compression progressive : on vise un fichier final léger (~150 Ko max)
+        // en réduisant la qualité, puis si besoin la dimension, jusqu'à repasser sous le seuil.
+        const TARGET_BYTES = 150000;
+        let q = quality;
+        let dataUrl = canvas.toDataURL('image/jpeg', q);
+        let attempts = 0;
+        while(dataUrl.length * 0.75 > TARGET_BYTES && attempts < 6){
+          q = Math.max(0.2, q - 0.15);
+          dataUrl = canvas.toDataURL('image/jpeg', q);
+          attempts++;
+        }
+        if(dataUrl.length * 0.75 > TARGET_BYTES){
+          // dernier recours : on réduit aussi les dimensions
+          const smallerCanvas = document.createElement('canvas');
+          smallerCanvas.width = Math.round(w*0.6);
+          smallerCanvas.height = Math.round(h*0.6);
+          smallerCanvas.getContext('2d').drawImage(canvas, 0, 0, smallerCanvas.width, smallerCanvas.height);
+          dataUrl = smallerCanvas.toDataURL('image/jpeg', 0.5);
+        }
+        resolve(dataUrl);
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function detectCurrencyByCountry(){
+  // Détection best-effort avec timeout court : si ça échoue ou prend trop de temps, on garde le GNF par défaut.
+  try{
+    const controller = new AbortController();
+    const timeout = setTimeout(()=>controller.abort(), 2500);
+    const res = await fetch('https://ipwho.is/', {signal: controller.signal});
+    clearTimeout(timeout);
+    const data = await res.json();
+    if(data && data.country_code && COUNTRY_TO_CURRENCY[data.country_code]){
+      currentCurrency = COUNTRY_TO_CURRENCY[data.country_code];
+      const picker = document.getElementById('currencyPick');
+      if(picker) picker.value = currentCurrency;
+      render();
+    }
+  }catch(e){
+    // silencieux : on reste en GNF, l'utilisateur peut changer manuellement
+  }
+}
+
+// ================= SUPABASE — À CONFIGURER =================
+// Remplace ces deux valeurs par celles de TON projet Supabase
+// (Project Settings → API → Project URL / anon public key)
+const SUPABASE_URL = 'https://czinjuyagdfbakrovtze.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6aW5qdXlhZ2RmYmFrcm92dHplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3MDI1MDAsImV4cCI6MjA5OTI3ODUwMH0.qwS_gkU3CHsI5Ptp7QGaOh1SPlru0rlWGrjdObrKv4o';
+// Email du compte admin créé dans Supabase (Authentication → Users).
+// L'écran "Accès pro" ne demande plus que le mot de passe : cet email est
+// utilisé automatiquement en arrière-plan. Remplace-le par le tien.
+// Note : cet email est visible dans le code source par n'importe qui — ce n'est
+// pas un secret (Supabase l'exige juste comme identifiant), seul le mot de passe protège l'accès.
+const ADMIN_EMAIL = 'mamadoualpha2209@gmail.com';
+const sb = (typeof supabase !== 'undefined' && SUPABASE_URL.indexOf('TON-PROJET') === -1)
+  ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+let PRODUCTS = [];
+let cart = [];
+let shopFilter = 'Tout';
+let shopPage = 1;
+let adminPage = 1;
+let adminSearch = '';
+let ORDERS = [];
+let ordersPage = 1;
+let ordersSearch = '';
+let ordersStatusFilter = '';
+let expandedOrderId = null;
+const PAGE_SIZE = 10;
+let route = {name:'home', param:null};
+let isAdmin = false;
+let settings = {webhookUrl:'', deliveryDelay:'2 à 14 jours'};
+let pendingImages = []; // photos en attente d'ajout (admin, multi-upload), remplace l'ancien pendingImageData
+// État de la fiche produit (galerie photo + taille sélectionnée), remis à zéro à chaque navigation vers un produit
+let pdImageIndex = 0;
+let pdSelectedSize = null;
+let pdLightboxOpen = false;
+let pdLightboxIndex = 0;
+// Tailles en cours de saisie dans le formulaire admin "Ajouter un article"
+let apSizesDraft = [{size:'', qty:0}];
+
+// conversion entre la forme JS (camelCase) et les colonnes Supabase (snake_case)
+function productToRow(p){
+  return {
+    id:p.id, name:p.name, cat:p.cat, price_gnf:p.priceGNF,
+    discount_percent:p.discountPercent||0, delivery_delay:p.deliveryDelay||null,
+    badge:p.badge||null, featured:!!p.featured, icon:p.icon, images:p.images||[], stock:p.stock,
+    sizes:p.sizes||[], colors:p.colors||[], description:p.desc||''
+  };
+}
+function rowToProduct(r){
+  return {
+    id:r.id, name:r.name, cat:r.cat, priceGNF:Number(r.price_gnf),
+    discountPercent:Number(r.discount_percent||0), deliveryDelay:r.delivery_delay,
+    badge:r.badge,
+    // compat : anciennes lignes créées avant l'ajout de la colonne "featured"
+    // (mise en avant à l'accueil) : on reprend l'ancien critère (badge NOUVEAU) par défaut.
+    featured: (r.featured !== undefined && r.featured !== null) ? !!r.featured : (r.badge === 'NOUVEAU'),
+    icon:r.icon,
+    // compat : anciennes lignes qui n'avaient qu'une seule colonne "image"
+    images: (r.images && r.images.length) ? r.images : (r.image ? [r.image] : []),
+    stock:r.stock, sizes:r.sizes||[],
+    colors:r.colors||[], desc:r.description||''
+  };
+}
+// Un article a des tailles suivies dès que sizes[] n'est pas vide : le stock
+// se déduit alors des quantités par taille plutôt que du booléen "stock".
+function productInStock(p){
+  if(p.sizes && p.sizes.length) return p.sizes.some(s=>s.qty>0);
+  return !!p.stock;
+}
+function sizeQty(p, size){
+  if(!p.sizes) return 0;
+  const s = p.sizes.find(x=>x.size===size);
+  return s ? s.qty : 0;
+}
+function totalStockQty(p){
+  if(!p.sizes || !p.sizes.length) return null; // pas de suivi précis pour cet article
+  return p.sizes.reduce((sum,s)=>sum+(s.qty||0), 0);
+}
+// Parse le format admin "S:5, M:8, L:0" -> [{size:'S',qty:5}, ...]
+function parseSizesInput(raw){
+  if(!raw || !raw.trim()) return [];
+  return raw.split(',').map(part=>{
+    const [size, qtyRaw] = part.split(':');
+    const qty = Math.max(0, parseInt((qtyRaw||'0').trim(), 10) || 0);
+    return {size:(size||'').trim().slice(0,10), qty};
+  }).filter(s=>s.size);
+}
+function sizesToInput(sizes){
+  return (sizes||[]).map(s=>`${s.size}:${s.qty}`).join(', ');
+}
+function noDbWarning(){
+  alert("⚠️ La base de données Supabase n'est pas configurée. Ouvre le fichier HTML, trouve les lignes SUPABASE_URL / SUPABASE_ANON_KEY tout en haut du script, et remplace-les par celles de ton propre projet Supabase.");
+}
+
+// ================= STOCKAGE =================
+async function loadProducts(){
+  if(!sb){ PRODUCTS = DEFAULT_PRODUCTS; return; }
+  try{
+    const {data, error} = await sb.from('products').select('*').order('created_at', {ascending:true});
+    if(error) throw error;
+    if(data && data.length){ PRODUCTS = data.map(rowToProduct); return; }
+    // catalogue vide : on initialise avec les produits de démonstration
+    const rows = DEFAULT_PRODUCTS.map(productToRow);
+    await sb.from('products').insert(rows);
+    PRODUCTS = DEFAULT_PRODUCTS;
+  }catch(e){
+    console.error('Erreur chargement catalogue', e);
+    PRODUCTS = DEFAULT_PRODUCTS;
+  }
+}
+async function loadCart(){
+  try{ cart = JSON.parse(localStorage.getItem('brut_cart') || '[]'); }
+  catch(e){ cart = []; }
+}
+// Retire du panier les lignes dont le produit n'existe plus dans le catalogue
+// (article supprimé côté admin) : évite un compteur de panier "fantôme" qui
+// affiche 1 article alors que la page panier ne peut rien montrer.
+function sanitizeCart(){
+  const before = cart.length;
+  cart = cart.filter(c => PRODUCTS.some(p => p.id === c.id));
+  if(cart.length !== before) saveCart();
+}
+async function saveCart(){
+  try{ localStorage.setItem('brut_cart', JSON.stringify(cart)); }
+  catch(e){ console.error('Erreur sauvegarde panier', e); }
+}
+async function loadSettings(){
+  // Réglages publics uniquement (délai de livraison). Le webhook est dans une
+  // table séparée, non lisible par les visiteurs (voir loadAdminSettings).
+  if(!sb) return;
+  try{
+    const {data, error} = await sb.from('settings').select('delivery_delay').eq('id', 1).single();
+    if(error) throw error;
+    if(data) settings.deliveryDelay = data.delivery_delay || '2 à 14 jours';
+  }catch(e){
+    console.error('Erreur chargement réglages', e);
+  }
+}
+async function loadAdminSettings(){
+  // N'est appelée qu'après connexion admin réussie. La table admin_settings
+  // doit avoir une policy RLS qui refuse toute lecture au rôle anon (voir SQL fourni).
+  if(!sb || !isAdmin) return;
+  try{
+    const {data, error} = await sb.from('admin_settings').select('webhook_url').eq('id', 1).single();
+    if(error) throw error;
+    if(data) settings.webhookUrl = data.webhook_url || '';
+  }catch(e){
+    console.error('Erreur chargement réglages admin', e);
+  }
+}
+// Charge la liste des commandes (réservé admin — protégé par RLS, voir supabase-securite.sql)
+async function loadOrders(){
+  if(!sb || !isAdmin) return;
+  try{
+    const {data, error} = await sb.from('orders').select('*').order('created_at', {ascending:false});
+    if(error) throw error;
+    ORDERS = data || [];
+  }catch(e){
+    console.error('Erreur chargement commandes', e);
+  }
+}
+const ORDER_STATUSES = {
+  nouvelle:    {label:'Nouvelle',       next:'preparation'},
+  preparation: {label:'En préparation', next:'expediee'},
+  expediee:    {label:'Expédiée',       next:null},
+  annulee:     {label:'Annulée',        next:null}
+};
+function statusLabel(status){
+  return (ORDER_STATUSES[status] || ORDER_STATUSES.nouvelle).label;
+}
+// Change le statut d'une commande (mise à jour optimiste avec retour arrière si la requête échoue)
+async function updateOrderStatus(id, status){
+  if(!sb) return noDbWarning();
+  const o = ORDERS.find(x=>x.id===id);
+  if(!o) return;
+  const previous = o.status;
+  o.status = status;
+  render();
+  const {error} = await sb.from('orders').update({status}).eq('id', id);
+  if(error){
+    console.error(error);
+    o.status = previous;
+    alert("La mise à jour du statut a échoué. Réessaie dans un instant.");
+    render();
+  }
+}
+async function saveOrder(order){
+  if(!sb){ noDbWarning(); return false; }
+  try{
+    const {error} = await sb.from('orders').insert({
+      id:order.id, items:order.items, total:order.total, customer:order.customer,
+      payment:order.payment, delivery_summary:order.deliverySummary || null
+    });
+    if(error) throw error;
+    return true;
+  }catch(e){
+    console.error('Erreur sauvegarde commande', e);
+    alert("⚠️ La commande n'a pas pu être enregistrée. Merci de réessayer dans un instant ou de nous contacter directement.");
+    return false;
+  }
+}
+// La notification Discord ne se déclenche plus depuis le navigateur du client :
+// cela obligeait à rendre l'URL du webhook publique, donc lisible par n'importe
+// quel visiteur inspectant le code (fuite de secret). Elle doit désormais être
+// envoyée côté serveur, par une Supabase Edge Function déclenchée sur l'insertion
+// d'une commande (Database Webhook). Voir le fichier fourni séparément
+// (edge-function-notify-order.md) pour le code prêt à déployer.
+
+// ================= HELPERS =================
+// Échappe le HTML pour empêcher toute injection (XSS stocké) via des champs
+// texte (nom produit, description, couleurs, réglages admin, etc.)
+function escapeHtml(str){
+  if(str===null || str===undefined) return '';
+  return String(str).replace(/[&<>"']/g, ch => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[ch]));
+}
+function cartCount(){ return cart.reduce((s,c)=>s+c.qty,0); }
+// Découpe une liste en pages de PAGE_SIZE éléments, en corrigeant la page demandée si hors limites
+function paginate(list, page){
+  const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const start = (safePage - 1) * PAGE_SIZE;
+  return { items: list.slice(start, start + PAGE_SIZE), page: safePage, totalPages, total: list.length };
+}
+// Barre de pagination réutilisable : « Précédent  1 2 3  Suivant »
+function renderPagination(page, totalPages, attr){
+  if(totalPages <= 1) return '';
+  let nums = '';
+  for(let i=1; i<=totalPages; i++){
+    nums += `<button class="page-num ${i===page?'active':''}" data-${attr}="${i}">${i}</button>`;
+  }
+  return `
+    <div class="pagination">
+      <button class="page-nav" data-${attr}="${page-1}" ${page<=1?'disabled':''}>← Précédent</button>
+      <div class="page-nums">${nums}</div>
+      <button class="page-nav" data-${attr}="${page+1}" ${page>=totalPages?'disabled':''}>Suivant →</button>
+    </div>
+  `;
+}
+function cartTotalEUR(){
+  return cart.reduce((sum,c)=>{
+    const p = PRODUCTS.find(x=>x.id===c.id);
+    return sum + (p ? finalPriceGNF(p)*c.qty : 0);
+  },0);
+}
+function updateCartCount(){ document.getElementById('cartCount').textContent = cartCount(); }
+function navigate(name, param){
+  if(name==='product'){ pdImageIndex = 0; pdSelectedSize = null; pdLightboxOpen = false; pdLightboxIndex = 0; }
+  if(name==='shop'){ shopPage = 1; }
+  route = {name, param: param||null};
+  render();
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+function swatchOrIcon(p, className){
+  if(p.images && p.images.length) return `<img src="${escapeHtml(p.images[0])}" alt="${escapeHtml(p.name)}">`;
+  return ICONS[p.icon] || ICONS[CAT_ICON[p.cat]] || ICONS.box;
+}
+function colorDots(colors){
+  if(!colors || !colors.length) return '';
+  return `<div class="swatch-dots">${colors.slice(0,5).map(c=>{
+    const hex = COLOR_MAP[c.trim().toLowerCase()] || '#999999';
+    return `<span class="swatch-dot" style="background:${hex}" title="${escapeHtml(c)}"></span>`;
+  }).join('')}</div>`;
+}
+
+function productCard(p){
+  const hasColors = p.colors && p.colors.length > 0;
+  const hasSizes = p.sizes && p.sizes.length > 0;
+  const needsChoice = hasColors || hasSizes; // doit passer par la fiche produit pour choisir taille/couleur
+  const inStock = productInStock(p);
+  return `
+    <div class="card ${inStock ? '' : 'out'}">
+      ${p.badge ? `<div class="badge ${inStock?'':'stock-out'}">${inStock ? escapeHtml(p.badge) : 'ÉPUISÉ'}</div>` : (!inStock ? `<div class="badge stock-out">ÉPUISÉ</div>` : '')}
+      <div class="swatch" data-goto-product="${p.id}">${swatchOrIcon(p)}</div>
+      <div class="card-body">
+        <div class="card-cat">${escapeHtml(p.cat)}</div>
+        <button class="card-name-btn" data-goto-product="${p.id}"><div class="card-name">${escapeHtml(p.name)}</div></button>
+        ${colorDots(p.colors)}
+        <div class="card-foot">
+          <span class="card-price">${p.discountPercent>0 ? `<span class="old-price">${formatPrice(p.priceGNF)}</span> ${formatPrice(finalPriceGNF(p))} <span class="discount-tag">-${p.discountPercent}%</span>` : formatPrice(p.priceGNF)}</span>
+          <span class="stock-tag ${inStock?'in':'out'}">${inStock ? 'En stock' : 'Épuisé'}</span>
+        </div>
+        ${needsChoice
+          ? `<button class="add-btn" data-goto-product="${p.id}" ${inStock ? '' : 'disabled'}>${inStock ? 'Choisir & ajouter' : 'Indisponible'}</button>`
+          : `<button class="add-btn" data-add="${p.id}" ${inStock ? '' : 'disabled'}>${inStock ? 'Ajouter au panier' : 'Indisponible'}</button>`}
+      </div>
+    </div>
+  `;
+}
+
+// ================= PAGES =================
+function renderHome(){
+  const nouveautes = PRODUCTS.filter(p=>p.featured);
+  return `
+    <section class="hero">
+      <div class="hazard"></div>
+      <div class="hero-inner">
+        <div class="hero-tag">◆ DROP 004 — ÉTÉ 2026</div>
+        <h1>PORTE<br>TON<br><span class="outline">ATTITUDE</span></h1>
+        <p class="sub">Vêtements et accessoires taillés pour la rue. Coupes brutes, matières solides, séries limitées.</p>
+        <button class="btn" data-route="shop">Voir la collection
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </section>
+    <div class="page">
+      <div class="section-head"><h2 style="font-size:32px;">Sélection</h2><button class="mono" style="font-size:12px;text-decoration:underline;background:none;border:none;cursor:pointer;" data-route="shop">Tout voir →</button></div>
+      <div class="grid">${nouveautes.map(productCard).join('') || '<div style="padding:30px;grid-column:1/-1;color:var(--grey);">Aucun article mis en avant pour le moment.</div>'}</div>
+    </div>
+  `;
+}
+
+function renderShop(){
+  const cats = ['Tout', ...CATEGORIES];
+  const list = shopFilter==='Tout' ? PRODUCTS : PRODUCTS.filter(p=>p.cat===shopFilter);
+  const {items, page, totalPages, total} = paginate(list, shopPage);
+  return `
+    <div class="page">
+      <div class="page-head">
+        <div class="breadcrumb"><button data-route="home">Accueil</button> / Boutique</div>
+        <h1>La boutique</h1>
+      </div>
+      <div class="cat-strip">
+        <span class="label">FILTRER —</span>
+        ${cats.map(c=>`<button class="chip ${c===shopFilter?'active':''}" data-filter="${c}">${c}</button>`).join('')}
+      </div>
+      <div class="section-head"><span></span><span class="count">${total} article${total>1?'s':''}${totalPages>1?` · page ${page}/${totalPages}`:''}</span></div>
+      <div class="grid">${items.map(productCard).join('') || '<div style="padding:30px;grid-column:1/-1;color:var(--grey);">Aucun article dans cette catégorie.</div>'}</div>
+      ${renderPagination(page, totalPages, 'shop-page')}
+    </div>
+  `;
+}
+
+function renderProduct(id){
+  const p = PRODUCTS.find(x=>x.id===id);
+  if(!p) return `<div class="page"><p>Article introuvable. <button data-route="shop" style="text-decoration:underline;background:none;border:none;cursor:pointer;">Retour à la boutique</button></p></div>`;
+  const images = (p.images && p.images.length) ? p.images : [];
+  const hasSizes = p.sizes && p.sizes.length > 0;
+  const inStock = productInStock(p);
+  const activeImg = images[pdImageIndex] || images[0] || null;
+
+  const gallery = `
+    <div class="pd-gallery">
+      <div class="pd-main-wrap">
+        <div class="pd-swatch" ${activeImg ? 'data-pd-zoom-open="1"' : ''}>
+          ${activeImg ? `<img src="${escapeHtml(activeImg)}" alt="${escapeHtml(p.name)}">` : swatchOrIcon(p)}
+        </div>
+        ${activeImg ? `<div class="pd-zoom-hint">🔍 Cliquer pour zoomer</div>` : ''}
+      </div>
+      ${images.length > 1 ? `
+        <div class="pd-thumbs">
+          ${images.map((img,i)=>`
+            <button class="pd-thumb ${i===pdImageIndex?'active':''}" data-pd-thumb="${i}">
+              <img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)} photo ${i+1}">
+            </button>
+          `).join('')}
+        </div>` : ''}
+    </div>
+    <div class="lightbox ${pdLightboxOpen ? 'open' : ''}" data-pd-lightbox-close="1">
+      <button class="lightbox-close" data-pd-lightbox-close="1" aria-label="Fermer">✕</button>
+      ${images.length > 1 ? `
+        <button class="lightbox-nav lightbox-prev" data-pd-lightbox-prev="1" aria-label="Photo précédente">‹</button>
+        <button class="lightbox-nav lightbox-next" data-pd-lightbox-next="1" aria-label="Photo suivante">›</button>
+      ` : ''}
+      ${images.length ? `<img src="${escapeHtml(images[pdLightboxIndex] || images[0])}" alt="${escapeHtml(p.name)} agrandie">` : ''}
+    </div>
+  `;
+
+  const sizeSelector = hasSizes ? `
+    <div class="pd-sizes">
+      <div class="label">Choisis ta taille</div>
+      <div class="size-row">
+        ${p.sizes.map(s=>{
+          const disabled = s.qty <= 0;
+          const selected = pdSelectedSize === s.size && !disabled;
+          return `<button class="size-opt ${selected?'selected':''} ${disabled?'disabled':''}" ${disabled?'disabled':`data-pd-size="${escapeHtml(s.size)}"`}>${escapeHtml(s.size)}<span class="size-qty">${disabled ? 'épuisé' : s.qty+' dispo'}</span></button>`;
+        }).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  const canAdd = inStock && (!hasSizes || (pdSelectedSize && sizeQty(p, pdSelectedSize) > 0));
+
+  return `
+    <div class="page">
+      <div class="page-head">
+        <div class="breadcrumb"><button data-route="home">Accueil</button> / <button data-route="shop">Boutique</button> / ${escapeHtml(p.name)}</div>
+      </div>
+      <div class="product-detail">
+        ${gallery}
+        <div class="pd-info">
+          <div class="cat">${escapeHtml(p.cat)}</div>
+          <h1>${escapeHtml(p.name)}</h1>
+          <div class="pd-price">${p.discountPercent>0 ? `<span class="old-price">${formatPrice(p.priceGNF)}</span> ${formatPrice(finalPriceGNF(p))} <span class="discount-tag">-${p.discountPercent}%</span>` : formatPrice(p.priceGNF)}</div>
+          <div class="pd-stock"><span class="stock-tag ${inStock?'in':'out'}" style="font-size:11px;padding:6px 12px;">${inStock ? '● En stock' : '● Épuisé'}</span></div>
+          <div class="delivery-banner">📦 Délai de livraison : <strong>${getDeliveryDelay(p)}</strong></div>
+          ${sizeSelector}
+          ${p.colors && p.colors.length ? `
+            <div class="pd-colors">
+              <div class="label">Choisis ta/tes couleur(s)</div>
+              <div class="color-check-row">${p.colors.map((c,i)=>{
+                const hex = COLOR_MAP[c.trim().toLowerCase()] || '#999999';
+                return `
+                  <label class="color-check">
+                    <input type="checkbox" class="pd-color-cb" value="${escapeHtml(c)}" ${i===0?'checked':''}>
+                    <span class="swatch-dot" style="background:${hex}"></span>${escapeHtml(c)}
+                  </label>`;
+              }).join('')}</div>
+            </div>` : ''}
+          <p class="pd-desc">${escapeHtml(p.desc || '')}</p>
+          <button class="btn" id="pdAddBtn" data-add-with-colors="${p.id}" ${canAdd?'':'disabled'}>${!inStock ? 'Indisponible' : (hasSizes && !pdSelectedSize ? 'Choisis une taille' : 'Ajouter au panier')}</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function cartDeliverySummary(){
+  const delays = [...new Set(cart.map(c=>{ const p=PRODUCTS.find(x=>x.id===c.id); return p ? getDeliveryDelay(p) : settings.deliveryDelay; }))];
+  return delays.length===1 ? delays[0] : null;
+}
+
+function renderCart(){
+  if(cart.length===0){
+    return `<div class="page"><div class="empty-cart">Ton panier est vide.<br><br><button class="btn dark" style="margin-top:10px;" data-route="shop">Voir la boutique</button></div></div>`;
+  }
+  const rows = cart.map(c=>{
+    const p = PRODUCTS.find(x=>x.id===c.id);
+    if(!p) return '';
+    const unit = finalPriceGNF(p);
+    return `
+      <tr>
+        <td><div class="ct-product"><div class="ct-thumb">${swatchOrIcon(p)}</div><div><div class="ct-name">${escapeHtml(p.name)}</div>${c.size ? `<div class="mono" style="font-size:10px;color:var(--grey);margin-top:2px;">Taille : ${escapeHtml(c.size)}</div>` : ''}${c.color ? `<div class="mono" style="font-size:10px;color:var(--grey);margin-top:2px;">Couleur : ${escapeHtml(c.color)}</div>` : ''}<div class="mono" style="font-size:10px;color:var(--grey);margin-top:2px;">📦 ${escapeHtml(getDeliveryDelay(p))}</div></div></div></td>
+        <td class="mono">${formatPrice(unit)}</td>
+        <td>
+          <div class="qty-row">
+            <button class="qty-btn" data-dec="${p.id}" data-color="${escapeHtml(c.color||'')}" data-size="${escapeHtml(c.size||'')}">−</button>
+            <span class="qty-val">${c.qty}</span>
+            <button class="qty-btn" data-inc="${p.id}" data-color="${escapeHtml(c.color||'')}" data-size="${escapeHtml(c.size||'')}">+</button>
+          </div>
+        </td>
+        <td class="mono">${formatPrice(unit*c.qty)}</td>
+        <td><button class="remove-link" data-remove="${p.id}" data-color="${escapeHtml(c.color||'')}" data-size="${escapeHtml(c.size||'')}">retirer</button></td>
+      </tr>
+    `;
+  }).join('');
+  const summary = cartDeliverySummary();
+  return `
+    <div class="page">
+      <div class="page-head"><div class="breadcrumb"><button data-route="home">Accueil</button> / Panier</div><h1>Ton panier</h1></div>
+      <div class="delivery-banner">📦 ${summary ? `Délai de livraison estimé : <strong>${summary}</strong>` : 'Délai variable selon les articles — voir le détail ci-dessous'}</div>
+      <table class="cart-table">
+        <thead><tr><th>Article</th><th>Prix</th><th>Qté</th><th>Sous-total</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="cart-summary">
+        <div class="total-row"><span>Total</span><span class="val">${formatPrice(cartTotalEUR())}</span></div>
+        <button class="btn dark" style="width:100%;justify-content:center;" data-route="checkout">Passer la commande</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderCheckout(){
+  if(cart.length===0){
+    return `<div class="page"><div class="empty-cart">Ton panier est vide.<br><br><button class="btn dark" style="margin-top:10px;" data-route="shop">Voir la boutique</button></div></div>`;
+  }
+  const lines = cart.map(c=>{
+    const p = PRODUCTS.find(x=>x.id===c.id);
+    if(!p) return '';
+    return `<div class="recap-line"><span>${escapeHtml(p.name)}${c.size?' — Taille '+escapeHtml(c.size):''}${c.color?' ('+escapeHtml(c.color)+')':''} × ${c.qty}<br><span class="mono" style="font-size:10px;color:var(--grey);">📦 ${escapeHtml(getDeliveryDelay(p))}</span></span><span class="mono">${formatPrice(finalPriceGNF(p)*c.qty)}</span></div>`;
+  }).join('');
+  const summary = cartDeliverySummary();
+  return `
+    <div class="page">
+      <div class="page-head"><div class="breadcrumb"><button data-route="home">Accueil</button> / <button data-route="cart">Panier</button> / Commande</div><h1>Finaliser la commande</h1></div>
+      <div class="checkout-grid">
+        <div>
+          <div class="field"><label>Nom complet</label><input type="text" id="ckName" placeholder="Jean Dupont" maxlength="100"></div>
+          <div class="field"><label>Email</label><input type="email" id="ckEmail" placeholder="jean@email.com" maxlength="150"></div>
+          <div class="field"><label>Adresse de livraison</label><input type="text" id="ckAddress" placeholder="12 rue de la Paix" maxlength="200"></div>
+          <div class="field-row">
+            <div class="field"><label>Ville</label><input type="text" id="ckCity" placeholder="Conakry" maxlength="100"></div>
+            <div class="field"><label>Téléphone</label><input type="text" id="ckPhone" placeholder="+224 ..." maxlength="30"></div>
+          </div>
+          <div class="field">
+            <label>Mode de paiement</label>
+            <div class="pay-option" style="cursor:default;">Paiement à la livraison<span class="pay-icon">CASH</span></div>
+            <p class="pay-note">Tu payes en espèces directement au livreur à la réception de ta commande.</p>
+          </div>
+          <div class="delivery-banner">📦 ${summary ? `Délai de livraison estimé : <strong>${summary}</strong>` : 'Délai variable selon les articles — voir le détail dans le récapitulatif'}</div>
+          <button class="btn" id="confirmOrderBtn" style="width:100%;justify-content:center;margin-top:6px;">Confirmer — ${formatPrice(cartTotalEUR())}</button>
+        </div>
+        <div class="order-recap">
+          <h4>Récapitulatif</h4>
+          ${lines}
+          <div class="total-row" style="margin-top:14px;"><span>Total</span><span class="val">${formatPrice(cartTotalEUR())}</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderConfirmation(order){
+  return `
+    <div class="page">
+      <div class="confirm-box">
+        <div class="icon">✓</div>
+        <h1 style="font-size:28px;">Commande confirmée</h1>
+        <p style="color:var(--grey);font-size:14px;">Merci ! Ta commande a bien été enregistrée.</p>
+        <div class="order-id">N° ${escapeHtml(order.id)}</div>
+        <div class="pay-summary">Paiement à la livraison · ${order.total}€</div>
+        ${order.deliverySummary
+          ? `<div class="pay-summary">Livraison estimée : ${escapeHtml(order.deliverySummary)}</div>`
+          : `<div class="pay-summary">${order.items.map(i=>`${escapeHtml(i.name)} : ${escapeHtml(i.deliveryDelay)}`).join(' · ')}</div>`}
+        <br><br>
+        <button class="btn dark" data-route="shop">Continuer mes achats</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderLock(){
+  return `
+    <div class="page">
+      <div class="lock-screen">
+        <div style="font-size:36px;">🔒</div>
+        <h1>Accès pro requis</h1>
+        <p>Entre le mot de passe du compte administrateur.</p>
+        <div class="field" style="text-align:left;"><label>Mot de passe</label><input type="password" id="adminPassword" placeholder="••••••••"></div>
+        <button class="btn dark" id="unlockBtn" style="width:100%;justify-content:center;">Se connecter</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderAdmin(){
+  const q = adminSearch.trim().toLowerCase();
+  const filtered = q
+    ? PRODUCTS.filter(p => p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q))
+    : PRODUCTS;
+  const {items:pageProducts, page, totalPages, total} = paginate(filtered, adminPage);
+  const rows = pageProducts.map(p=>{
+    const hasSizes = p.sizes && p.sizes.length > 0;
+    const inStock = productInStock(p);
+    const stockCell = hasSizes
+      ? `<button class="toggle-btn ${inStock?'in':'out'}" data-sizes="${p.id}" title="${escapeHtml(sizesToInput(p.sizes))}">${p.sizes.map(s=>`${escapeHtml(s.size)}:${s.qty}`).join(' · ')}</button>`
+      : `<button class="toggle-btn ${p.stock?'in':'out'}" data-toggle="${p.id}">${p.stock?'En stock':'Épuisé'}</button>`;
+    return `
+    <tr>
+      <td><div class="admin-prod"><div class="admin-thumb">${swatchOrIcon(p)}</div><div><div style="font-weight:700;font-size:12px;text-transform:uppercase;">${escapeHtml(p.name)}</div><div class="mono" style="font-size:10px;color:var(--grey);">${escapeHtml(p.cat)}</div></div></div></td>
+      <td class="mono">${p.discountPercent>0 ? `<span class="old-price">${formatPrice(p.priceGNF)}</span> ${formatPrice(finalPriceGNF(p))}` : formatPrice(p.priceGNF)}</td>
+      <td><button class="toggle-btn ${p.discountPercent>0?'in':'out'}" data-discount="${p.id}">${p.discountPercent>0 ? '-'+p.discountPercent+'%' : 'Aucune remise'}</button></td>
+      <td><button class="toggle-btn ${p.deliveryDelay?'in':'out'}" data-delay="${p.id}" style="max-width:130px;white-space:normal;text-align:left;">${p.deliveryDelay ? escapeHtml(p.deliveryDelay) : 'Délai par défaut'}</button></td>
+      <td style="max-width:160px;">${stockCell}</td>
+      <td><button class="toggle-btn ${p.featured?'in':'out'}" data-featured="${p.id}" title="Afficher/retirer de la sélection en page d'accueil">${p.featured ? '★ À la une' : 'Non affiché'}</button></td>
+      <td><button class="del-btn" data-del="${p.id}">supprimer</button></td>
+    </tr>
+  `;}).join('');
+  return `
+    <div class="page">
+      <div class="page-head" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+        <div><div class="breadcrumb"><button data-route="home">Accueil</button> / Admin</div><h1>Administration</h1></div>
+        <button class="btn ghost" id="adminLogoutBtn" style="margin-top:8px;">Se déconnecter</button>
+      </div>
+      <div class="admin-note">Le catalogue est partagé : les ajouts et changements de stock sont visibles par tous les visiteurs. Les prix sont saisis en francs guinéens (GNF) puis convertis automatiquement selon la devise choisie par le visiteur (EUR, XOF, USD). Pour un article avec des tailles, clique sur le bouton "taille:qté" du tableau pour modifier les quantités. Le bouton "★ À la une / Non affiché" contrôle si l'article apparaît dans la sélection de la page d'accueil.</div>
+
+      <div class="admin-form">
+        <h3>Livraison — délai par défaut</h3>
+        <div class="sub">UTILISÉ POUR TOUT ARTICLE SANS DÉLAI PERSONNALISÉ</div>
+        <div class="field">
+          <label>Délai de livraison par défaut</label>
+          <input type="text" id="deliveryDelayInput" placeholder="Ex: 2 à 14 jours" value="${escapeHtml(settings.deliveryDelay || '')}" maxlength="120">
+        </div>
+        <button class="btn dark" id="saveDeliveryBtn">Enregistrer</button>
+        <p class="pay-note" style="margin-top:10px;">Tu peux aussi définir un délai spécifique pour un article précis (voir plus bas ou colonne "Livraison" du tableau) — il remplacera ce délai par défaut pour cet article uniquement.</p>
+      </div>
+
+      <div class="admin-form">
+        <h3>Notifications de commande</h3>
+        <div class="sub">TU REÇOIS UNE ALERTE DÈS QU'UNE COMMANDE EST PASSÉE</div>
+        <div class="field">
+          <label>URL du webhook Discord</label>
+          <input type="text" id="webhookUrl" placeholder="https://discord.com/api/webhooks/..." value="${escapeHtml(settings.webhookUrl || '')}">
+        </div>
+        <button class="btn dark" id="saveWebhookBtn">Enregistrer</button>
+        <p class="pay-note" style="margin-top:10px;">Crée un webhook dans un salon Discord (Paramètres du salon → Intégrations → Webhooks) et colle l'URL ici. Tu recevras une notification sur ton téléphone via l'app Discord à chaque commande. Cette URL est stockée dans une table séparée, réservée aux comptes admin (voir policies RLS) — elle n'est pas lisible par les visiteurs du site.</p>
+      </div>
+
+      <div class="admin-grid">
+        <div>
+          <div class="field" style="max-width:340px;">
+            <label>Rechercher un article</label>
+            <input type="text" id="adminSearchInput" placeholder="Nom ou catégorie…" value="${escapeHtml(adminSearch)}">
+          </div>
+          <div class="section-head"><span></span><span class="count">${total} article${total>1?'s':''}${q?` pour « ${escapeHtml(adminSearch)} »`:''}${totalPages>1?` · page ${page}/${totalPages}`:''}</span></div>
+          <table class="admin-table">
+            <thead><tr><th>Article</th><th>Prix</th><th>Remise</th><th>Livraison</th><th>Stock</th><th>Accueil</th><th></th></tr></thead>
+            <tbody>${rows || `<tr><td colspan="7" style="padding:24px 8px;color:var(--grey);">Aucun article ne correspond à ta recherche.</td></tr>`}</tbody>
+          </table>
+          ${renderPagination(page, totalPages, 'admin-page')}
+        </div>
+        <div class="admin-form" style="margin-bottom:0;">
+          <h3>Ajouter un article</h3>
+          <div class="sub">NOUVEAU PRODUIT</div>
+          <div class="field"><label>Nom</label><input type="text" id="apName" placeholder="Ex: Sweat Zip Archive" maxlength="100"></div>
+          <div class="field"><label>Catégorie</label>
+            <select id="apCat">${CATEGORIES.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
+          </div>
+          <div class="field"><label>Prix (en francs guinéens — GNF)</label><input type="number" id="apPrice" placeholder="600000" min="0" step="1000"></div>
+          <div class="field"><label>Remise (%) — laisser à 0 si aucune</label><input type="number" id="apDiscount" placeholder="0" min="0" max="90" value="0"></div>
+          <div class="field"><label>Délai de livraison pour cet article</label><input type="text" id="apDeliveryDelay" placeholder="Laisser vide = délai par défaut (${escapeHtml(settings.deliveryDelay || '2 à 14 jours')})" maxlength="120"></div>
+          <div class="field"><label>Couleurs disponibles</label><input type="text" id="apColors" placeholder="Noir, Blanc, Kaki" maxlength="200"></div>
+          <div class="field">
+            <label>Tailles & quantités en stock (laisser vide si non applicable)</label>
+            <div class="admin-sizes-input" id="apSizesRows">
+              ${apSizesDraft.map((row,i)=>`
+                <div class="admin-size-row">
+                  <input type="text" class="ap-size-name" data-size-idx="${i}" placeholder="Ex: M" maxlength="10" value="${escapeHtml(row.size)}">
+                  <input type="number" class="ap-size-qty" data-size-idx="${i}" min="0" placeholder="Qté" value="${row.qty || ''}">
+                  <button type="button" data-remove-size-row="${i}" title="Retirer cette taille">✕</button>
+                </div>
+              `).join('')}
+            </div>
+            <button type="button" class="admin-add-size-btn" id="addSizeRowBtn" style="margin-top:8px;width:100%;">+ Ajouter une taille</button>
+          </div>
+          <div class="field"><label>Photos de l'article (jusqu'à 4)</label><input type="file" id="apImage" accept="image/*" multiple></div>
+          <div class="img-preview-row" id="apImagePreview"></div>
+          <div class="checkbox-row" style="margin-top:14px;">
+            <input type="checkbox" id="apStock" checked>
+            <label for="apStock">Disponible en stock (ignoré si des tailles sont renseignées ci-dessus)</label>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="apFeatured">
+            <label for="apFeatured">Mettre en avant sur la page d'accueil</label>
+          </div>
+          <button class="btn dark" id="addProductBtn" style="width:100%;justify-content:center;">Ajouter le produit</button>
+        </div>
+      </div>
+
+      ${renderOrdersSection()}
+    </div>
+  `;
+}
+// Bloc "Commandes clients" du panneau admin : recherche, pagination, détail dépliable par ligne
+function renderOrdersSection(){
+  const q = ordersSearch.trim().toLowerCase();
+  let filtered = q
+    ? ORDERS.filter(o => (o.id||'').toLowerCase().includes(q) || ((o.customer||{}).name||'').toLowerCase().includes(q) || ((o.customer||{}).email||'').toLowerCase().includes(q))
+    : ORDERS;
+  if(ordersStatusFilter) filtered = filtered.filter(o => (o.status||'nouvelle') === ordersStatusFilter);
+  const {items:pageOrders, page, totalPages, total} = paginate(filtered, ordersPage);
+  const rows = pageOrders.map(o=>{
+    const c = o.customer || {};
+    const items = o.items || [];
+    const isOpen = expandedOrderId === o.id;
+    const status = o.status || 'nouvelle';
+    const dateStr = o.created_at ? new Date(o.created_at).toLocaleString('fr-FR') : '—';
+    return `
+    <tr class="order-row" data-order-toggle="${escapeHtml(o.id)}">
+      <td class="mono">${escapeHtml(o.id)}</td>
+      <td class="mono" style="font-size:11px;">${dateStr}</td>
+      <td>${escapeHtml(c.name||'—')}<div class="mono" style="font-size:10px;color:var(--grey);">${escapeHtml(c.email||'')}</div></td>
+      <td class="mono">${items.reduce((s,i)=>s+(i.qty||0),0)} art.</td>
+      <td class="mono">${formatPrice(o.total)}</td>
+      <td><span class="status-badge status-${escapeHtml(status)}">${escapeHtml(statusLabel(status))}</span></td>
+      <td class="mono" style="text-align:center;">${isOpen ? '▲' : '▼'}</td>
+    </tr>
+    ${isOpen ? `
+    <tr class="order-detail-row">
+      <td colspan="7">
+        <div class="order-detail">
+          <div>
+            <div class="order-detail-label">Client</div>
+            <div>${escapeHtml(c.name||'')}</div>
+            <div>${escapeHtml(c.email||'')}</div>
+            <div>${escapeHtml(c.phone||'Téléphone non renseigné')}</div>
+            <div>${escapeHtml(c.address||'')}${c.city?', '+escapeHtml(c.city):''}</div>
+            ${o.delivery_summary ? `<div style="margin-top:8px;">📦 ${escapeHtml(o.delivery_summary)}</div>` : ''}
+            <div style="margin-top:14px;">
+              <div class="order-detail-label">Statut de la commande</div>
+              <select class="status-select" data-order-status="${escapeHtml(o.id)}">
+                ${Object.entries(ORDER_STATUSES).map(([key,val])=>`<option value="${key}" ${key===status?'selected':''}>${val.label}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div>
+            <div class="order-detail-label">Articles</div>
+            ${items.map(i=>`<div style="margin-bottom:5px;">${escapeHtml(i.name||'')}${i.size?' — Taille '+escapeHtml(i.size):''}${i.color?' ('+escapeHtml(i.color)+')':''} × ${i.qty} — ${formatPrice(i.price)}</div>`).join('') || '<div>—</div>'}
+            <div style="margin-top:10px;font-weight:700;">Total : ${formatPrice(o.total)}</div>
+          </div>
+        </div>
+      </td>
+    </tr>` : ''}
+    `;
+  }).join('');
+  return `
+    <div class="admin-form" style="margin-bottom:0;">
+      <h3>Commandes clients</h3>
+      <div class="sub">${ORDERS.length} COMMANDE${ORDERS.length>1?'S':''} AU TOTAL — CLIQUE UNE LIGNE POUR VOIR LE DÉTAIL</div>
+      <div class="field" style="max-width:340px;">
+        <label>Rechercher une commande</label>
+        <input type="text" id="ordersSearchInput" placeholder="N° commande, nom ou email…" value="${escapeHtml(ordersSearch)}">
+      </div>
+      <div class="field" style="max-width:220px;">
+        <label>Filtrer par statut</label>
+        <select id="ordersStatusFilter">
+          <option value="">Tous les statuts</option>
+          ${Object.entries(ORDER_STATUSES).map(([key,val])=>`<option value="${key}" ${key===ordersStatusFilter?'selected':''}>${val.label}</option>`).join('')}
+        </select>
+      </div>
+      <div class="section-head"><span></span><span class="count">${total} commande${total>1?'s':''}${q?` pour « ${escapeHtml(ordersSearch)} »`:''}${totalPages>1?` · page ${page}/${totalPages}`:''}</span></div>
+      <table class="admin-table">
+        <thead><tr><th>N°</th><th>Date</th><th>Client</th><th>Articles</th><th>Total</th><th>Statut</th><th></th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="7" style="padding:24px 8px;color:var(--grey);">${ORDERS.length===0 ? 'Aucune commande pour le moment.' : 'Aucune commande ne correspond à ta recherche.'}</td></tr>`}</tbody>
+      </table>
+      ${renderPagination(page, totalPages, 'orders-page')}
+    </div>
+  `;
+}
+
+// ================= ACTIONS =================
+async function addToCart(id, color, size){
+  const p = PRODUCTS.find(x=>x.id===id);
+  if(!p || !productInStock(p)) return;
+  if(p.sizes && p.sizes.length){
+    if(!size || sizeQty(p, size) <= 0) return; // taille obligatoire et disponible pour un article avec tailles
+  }
+  const item = cart.find(c=>c.id===id && (c.color||null)===(color||null) && (c.size||null)===(size||null));
+  if(item) item.qty += 1; else cart.push({id, color: color||null, size: size||null, qty:1});
+  await saveCart();
+  updateCartCount();
+}
+async function addToCartWithColors(id){
+  const p = PRODUCTS.find(x=>x.id===id);
+  if(!p || !productInStock(p)) return;
+  const hasSizes = p.sizes && p.sizes.length > 0;
+  if(hasSizes && (!pdSelectedSize || sizeQty(p, pdSelectedSize) <= 0)){
+    alert('Merci de choisir une taille disponible.');
+    return;
+  }
+  const size = hasSizes ? pdSelectedSize : null;
+  const checked = Array.from(document.querySelectorAll('.pd-color-cb:checked')).map(cb=>cb.value);
+  if(p.colors && p.colors.length && checked.length===0){
+    alert('Merci de choisir au moins une couleur.');
+    return;
+  }
+  if(checked.length){
+    for(const color of checked){ await addToCart(id, color, size); }
+  } else {
+    await addToCart(id, null, size);
+  }
+  navigate('cart');
+}
+async function changeQty(id, color, size, delta){
+  const item = cart.find(c=>c.id===id && (c.color||null)===(color||null) && (c.size||null)===(size||null));
+  if(!item) return;
+  item.qty += delta;
+  if(item.qty<=0) cart = cart.filter(c=>c!==item);
+  await saveCart();
+  render();
+}
+async function removeItem(id, color, size){
+  cart = cart.filter(c=>!(c.id===id && (c.color||null)===(color||null) && (c.size||null)===(size||null)));
+  await saveCart();
+  render();
+}
+async function submitOrder(){
+  const name = document.getElementById('ckName').value.trim().slice(0, 100);
+  const email = document.getElementById('ckEmail').value.trim().slice(0, 150);
+  const address = document.getElementById('ckAddress').value.trim().slice(0, 200);
+  const city = document.getElementById('ckCity').value.trim().slice(0, 100);
+  const phone = document.getElementById('ckPhone').value.trim().slice(0, 30);
+  if(!name || !email || !address){
+    alert("Merci de remplir au moins le nom, l'email et l'adresse.");
+    return;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    alert("Merci de renseigner une adresse email valide.");
+    return;
+  }
+  const confirmBtn = document.getElementById('confirmOrderBtn');
+  if(confirmBtn){ confirmBtn.disabled = true; confirmBtn.textContent = 'Envoi en cours…'; } // évite le double-clic / double commande
+  const order = {
+    id: 'BRUT-' + Date.now().toString().slice(-8),
+    items: cart.map(c=>{ const p = PRODUCTS.find(x=>x.id===c.id); return {name:p.name, color:c.color, size:c.size, price:finalPriceGNF(p), qty:c.qty, deliveryDelay:getDeliveryDelay(p)}; }),
+    total: cartTotalEUR(),
+    customer:{name,email,address,city,phone},
+    payment:{method:'livraison'},
+    deliverySummary: cartDeliverySummary(),
+    date: new Date().toISOString()
+  };
+  const saved = await saveOrder(order);
+  if(!saved){
+    if(confirmBtn){ confirmBtn.disabled = false; confirmBtn.textContent = 'Confirmer — '+formatPrice(cartTotalEUR()); }
+    return;
+  }
+  await decrementStockForOrder(cart);
+  // La notification Discord est envoyée côté serveur (voir edge-function-notify-order.md), plus depuis le navigateur.
+  cart = [];
+  await saveCart();
+  updateCartCount();
+  route = {name:'confirmation', param:order};
+  render();
+  window.scrollTo({top:0, behavior:'instant'});
+}
+// Décrémente le stock par taille après une commande réussie. Fait au mieux, sans
+// verrou de concurrence (deux commandes simultanées sur le dernier exemplaire
+// pourraient toutes les deux passer) — acceptable pour une petite boutique, mais
+// à garder en tête. Les articles sans tailles ne sont pas touchés automatiquement :
+// l'admin gère leur statut "En stock / Épuisé" manuellement.
+async function decrementStockForOrder(items){
+  if(!sb) return;
+  const touched = new Set();
+  for(const c of items){
+    const p = PRODUCTS.find(x=>x.id===c.id);
+    if(!p || !p.sizes || !p.sizes.length || !c.size) continue;
+    const s = p.sizes.find(x=>x.size===c.size);
+    if(s) s.qty = Math.max(0, s.qty - c.qty);
+    touched.add(p.id);
+  }
+  for(const id of touched){
+    const p = PRODUCTS.find(x=>x.id===id);
+    try{ await sb.from('products').update({sizes:p.sizes}).eq('id', id); }
+    catch(e){ console.error('Erreur mise à jour du stock', e); }
+  }
+}
+async function toggleStock(id){
+  if(!sb) return noDbWarning();
+  const p = PRODUCTS.find(x=>x.id===id);
+  if(!p) return;
+  p.stock = !p.stock;
+  const {error} = await sb.from('products').update({stock:p.stock}).eq('id', id);
+  if(error){ console.error(error); alert("La mise à jour du stock a échoué. Réessaie dans un instant."); p.stock = !p.stock; }
+  render();
+}
+// Marque/démarque un article comme "mis en avant" sur la page d'accueil
+async function toggleFeatured(id){
+  if(!sb) return noDbWarning();
+  const p = PRODUCTS.find(x=>x.id===id);
+  if(!p) return;
+  p.featured = !p.featured;
+  const {error} = await sb.from('products').update({featured:p.featured}).eq('id', id);
+  if(error){ console.error(error); alert("La mise à jour a échoué. Réessaie dans un instant."); p.featured = !p.featured; }
+  render();
+}
+async function editDiscount(id){
+  if(!sb) return noDbWarning();
+  const p = PRODUCTS.find(x=>x.id===id);
+  if(!p) return;
+  const input = prompt('Pourcentage de remise (0 à 90, laisser 0 pour aucune remise) :', p.discountPercent || 0);
+  if(input === null) return;
+  const pct = parseFloat(input);
+  if(isNaN(pct) || pct < 0 || pct > 90){
+    alert("Merci d'entrer un pourcentage valide entre 0 et 90.");
+    return;
+  }
+  p.discountPercent = pct;
+  const {error} = await sb.from('products').update({discount_percent:pct}).eq('id', id);
+  if(error){ console.error(error); alert("La mise à jour de la remise a échoué. Réessaie dans un instant."); }
+  render();
+}
+async function editProductDelay(id){
+  if(!sb) return noDbWarning();
+  const p = PRODUCTS.find(x=>x.id===id);
+  if(!p) return;
+  const input = prompt('Délai de livraison pour cet article (laisser vide pour utiliser le délai par défaut : "'+settings.deliveryDelay+'") :', p.deliveryDelay || '');
+  if(input === null) return;
+  p.deliveryDelay = input.trim().slice(0, 120) || null;
+  const {error} = await sb.from('products').update({delivery_delay:p.deliveryDelay}).eq('id', id);
+  if(error){ console.error(error); alert("La mise à jour du délai a échoué. Réessaie dans un instant."); }
+  render();
+}
+async function deleteProduct(id){
+  if(!sb) return noDbWarning();
+  if(!confirm('Supprimer cet article du catalogue ?')) return;
+  const {error} = await sb.from('products').delete().eq('id', id);
+  if(error){ console.error(error); alert("La suppression a échoué. Réessaie dans un instant."); return; }
+  PRODUCTS = PRODUCTS.filter(p=>p.id!==id);
+  sanitizeCart();
+  updateCartCount();
+  render();
+}
+async function addProduct(){
+  if(!sb) return noDbWarning();
+  const name = document.getElementById('apName').value.trim().slice(0, 100);
+  const cat = document.getElementById('apCat').value;
+  const price = parseFloat(document.getElementById('apPrice').value);
+  const discountRaw = document.getElementById('apDiscount').value;
+  const discountPercent = discountRaw ? Math.min(90, Math.max(0, parseFloat(discountRaw) || 0)) : 0;
+  const deliveryDelayRaw = document.getElementById('apDeliveryDelay').value.trim().slice(0, 120);
+  const colorsRaw = document.getElementById('apColors').value.trim().slice(0, 200);
+  const colors = colorsRaw ? colorsRaw.split(',').map(c=>c.trim().slice(0,30)).filter(Boolean).slice(0,10) : [];
+  const stock = document.getElementById('apStock').checked;
+  const featured = document.getElementById('apFeatured').checked;
+  const sizes = apSizesDraft
+    .filter(r=>r.size && r.size.trim())
+    .map(r=>({size:r.size.trim().slice(0,10), qty:Math.max(0, parseInt(r.qty,10)||0)}));
+  if(!name || isNaN(price) || price<0){
+    alert('Merci de renseigner un nom et un prix valides.');
+    return;
+  }
+  const newProduct = {id:'p'+Date.now(), name, cat, priceGNF:price, discountPercent, deliveryDelay: deliveryDelayRaw || null, badge:'NOUVEAU', featured, icon:CAT_ICON[cat] || 'box', images: pendingImages.slice(), stock, sizes, colors, desc:''};
+  const {error} = await sb.from('products').insert(productToRow(newProduct));
+  if(error){ console.error(error); alert("L'ajout a échoué. Réessaie dans un instant."); return; }
+  PRODUCTS.push(newProduct);
+  pendingImages = [];
+  apSizesDraft = [{size:'', qty:0}];
+  navigate('admin');
+}
+async function editSizes(id){
+  if(!sb) return noDbWarning();
+  const p = PRODUCTS.find(x=>x.id===id);
+  if(!p) return;
+  const input = prompt('Tailles et quantités, format "Taille:Quantité" séparées par des virgules (ex: S:5, M:8, L:0) :', sizesToInput(p.sizes));
+  if(input === null) return;
+  p.sizes = parseSizesInput(input).slice(0, 15);
+  const {error} = await sb.from('products').update({sizes:p.sizes}).eq('id', id);
+  if(error){ console.error(error); alert("La mise à jour des tailles a échoué. Réessaie dans un instant."); }
+  render();
+}
+async function saveWebhook(){
+  if(!sb) return noDbWarning();
+  const val = document.getElementById('webhookUrl').value.trim();
+  if(val && !/^https:\/\//i.test(val)){
+    alert("L'URL du webhook doit commencer par https://");
+    return;
+  }
+  const previous = settings.webhookUrl;
+  settings.webhookUrl = val;
+  const {error} = await sb.from('admin_settings').update({webhook_url:settings.webhookUrl}).eq('id', 1);
+  if(error){ console.error(error); settings.webhookUrl = previous; alert("L'enregistrement a échoué. Réessaie dans un instant."); return; }
+  alert('Webhook enregistré.');
+}
+async function saveDeliveryDelay(){
+  if(!sb) return noDbWarning();
+  const val = document.getElementById('deliveryDelayInput').value.trim().slice(0, 120);
+  const previous = settings.deliveryDelay;
+  settings.deliveryDelay = val || '2 à 14 jours';
+  const {error} = await sb.from('settings').update({delivery_delay:settings.deliveryDelay}).eq('id', 1);
+  if(error){ console.error(error); settings.deliveryDelay = previous; alert("L'enregistrement a échoué. Réessaie dans un instant."); render(); return; }
+  alert('Délai de livraison enregistré.');
+  render();
+}
+async function adminLogin(){
+  if(!sb) return noDbWarning();
+  const password = document.getElementById('adminPassword').value;
+  if(!password){ alert('Merci de renseigner le mot de passe.'); return; }
+  const {error} = await sb.auth.signInWithPassword({email: ADMIN_EMAIL, password});
+  if(error){ console.error(error); alert('Connexion refusée. Vérifie le mot de passe.'); return; }
+  isAdmin = true;
+  await loadAdminSettings();
+  await loadOrders();
+  navigate('admin');
+}
+async function adminLogout(){
+  if(sb) await sb.auth.signOut();
+  isAdmin = false;
+  ORDERS = []; // on ne garde pas les données clients en mémoire une fois déconnecté
+  navigate('home');
+}
+
+// ================= RENDU =================
+function applyTranslations(){
+  const map = {
+    navHome:'home', navShop:'shop', footExploreTitle:'explore', footPolicyTitle:'policy', footSupportTitle:'support',
+    lblAccessibility:'lblAccessibility', lblCookies:'lblCookies', lblPrivacy:'lblPrivacy',
+    lblShipping:'lblShipping', lblTerms:'lblTerms', lblFaq:'lblFaq', lblContact:'lblContact', lblReturns:'lblReturns'
+  };
+  Object.keys(map).forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.textContent = t(map[id]);
+  });
+  const proBtn = document.getElementById('proAccessBtn');
+  if(proBtn) proBtn.textContent = t('proAccess');
+  const copyright = document.getElementById('footCopyright');
+  if(copyright) copyright.textContent = t('copyright');
+  const langPick = document.getElementById('langPick');
+  if(langPick) langPick.value = currentLang;
+  const currencyPick = document.getElementById('currencyPick');
+  if(currencyPick) currencyPick.value = currentCurrency;
+}
+
+function render(){
+  const app = document.getElementById('app');
+  let html = '';
+
+  if(route.name==='admin' && !isAdmin){
+    html = renderLock();
+  } else if(route.name==='home') html = renderHome();
+  else if(route.name==='shop') html = renderShop();
+  else if(route.name==='product') html = renderProduct(route.param);
+  else if(route.name==='cart') html = renderCart();
+  else if(route.name==='checkout') html = renderCheckout();
+  else if(route.name==='confirmation') html = renderConfirmation(route.param);
+  else if(route.name==='admin') html = renderAdmin();
+  else if(['faq','contact','returns','accessibility','cookies','privacy','shipping','terms'].includes(route.name)) html = renderStatic(route.name);
+  else html = renderHome();
+
+  app.innerHTML = html;
+  updateCartCount();
+  applyTranslations();
+
+  document.querySelectorAll('#navLinks button[data-route]').forEach(b=>{
+    const r = b.getAttribute('data-route');
+    const isShopFamily = r==='shop' && (route.name==='shop' || route.name==='product');
+    b.classList.toggle('active', route.name===r || isShopFamily);
+  });
+
+  // note : la navigation des boutons persistants (header/footer) est gérée par délégation plus bas, une seule fois
+  app.querySelectorAll('[data-goto-product]').forEach(el=>{
+    el.addEventListener('click', ()=> navigate('product', el.getAttribute('data-goto-product')));
+  });
+  app.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click', ()=>{ addToCart(b.getAttribute('data-add'), null, null); navigate('cart'); }));
+  app.querySelectorAll('[data-add-with-colors]').forEach(b=>b.addEventListener('click', ()=>addToCartWithColors(b.getAttribute('data-add-with-colors'))));
+  app.querySelectorAll('[data-inc]').forEach(b=>b.addEventListener('click', ()=>changeQty(b.getAttribute('data-inc'), b.getAttribute('data-color')||null, b.getAttribute('data-size')||null, 1)));
+  app.querySelectorAll('[data-dec]').forEach(b=>b.addEventListener('click', ()=>changeQty(b.getAttribute('data-dec'), b.getAttribute('data-color')||null, b.getAttribute('data-size')||null, -1)));
+  app.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click', ()=>removeItem(b.getAttribute('data-remove'), b.getAttribute('data-color')||null, b.getAttribute('data-size')||null)));
+  app.querySelectorAll('[data-pd-size]').forEach(b=>b.addEventListener('click', ()=>{ pdSelectedSize = b.getAttribute('data-pd-size'); render(); }));
+  app.querySelectorAll('[data-pd-thumb]').forEach(b=>b.addEventListener('click', ()=>{ pdImageIndex = parseInt(b.getAttribute('data-pd-thumb'),10) || 0; render(); }));
+  app.querySelectorAll('[data-pd-zoom-open]').forEach(b=>b.addEventListener('click', ()=>{ pdLightboxOpen = true; pdLightboxIndex = pdImageIndex; render(); }));
+  app.querySelectorAll('[data-pd-lightbox-close]').forEach(b=>b.addEventListener('click', (e)=>{ if(e.target===e.currentTarget){ pdLightboxOpen = false; render(); } }));
+  app.querySelectorAll('[data-pd-lightbox-prev]').forEach(b=>b.addEventListener('click', (e)=>{ e.stopPropagation(); const p=PRODUCTS.find(x=>x.id===route.param); const n=(p&&p.images)?p.images.length:0; if(n) pdLightboxIndex = (pdLightboxIndex - 1 + n) % n; render(); }));
+  app.querySelectorAll('[data-pd-lightbox-next]').forEach(b=>b.addEventListener('click', (e)=>{ e.stopPropagation(); const p=PRODUCTS.find(x=>x.id===route.param); const n=(p&&p.images)?p.images.length:0; if(n) pdLightboxIndex = (pdLightboxIndex + 1) % n; render(); }));
+  app.querySelectorAll('[data-toggle]').forEach(b=>b.addEventListener('click', ()=>toggleStock(b.getAttribute('data-toggle'))));
+  app.querySelectorAll('[data-featured]').forEach(b=>b.addEventListener('click', ()=>toggleFeatured(b.getAttribute('data-featured'))));
+  app.querySelectorAll('[data-discount]').forEach(b=>b.addEventListener('click', ()=>editDiscount(b.getAttribute('data-discount'))));
+  app.querySelectorAll('[data-delay]').forEach(b=>b.addEventListener('click', ()=>editProductDelay(b.getAttribute('data-delay'))));
+  app.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click', ()=>deleteProduct(b.getAttribute('data-del'))));
+  app.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click', ()=>{ shopFilter=b.getAttribute('data-filter'); shopPage=1; render(); }));
+  app.querySelectorAll('[data-shop-page]').forEach(b=>b.addEventListener('click', ()=>{ shopPage = parseInt(b.getAttribute('data-shop-page'),10) || 1; render(); window.scrollTo({top:0, behavior:'instant'}); }));
+  app.querySelectorAll('[data-admin-page]').forEach(b=>b.addEventListener('click', ()=>{ adminPage = parseInt(b.getAttribute('data-admin-page'),10) || 1; render(); }));
+  app.querySelectorAll('[data-orders-page]').forEach(b=>b.addEventListener('click', ()=>{ ordersPage = parseInt(b.getAttribute('data-orders-page'),10) || 1; render(); }));
+  app.querySelectorAll('[data-order-toggle]').forEach(b=>b.addEventListener('click', ()=>{ const id = b.getAttribute('data-order-toggle'); expandedOrderId = expandedOrderId===id ? null : id; render(); }));
+  app.querySelectorAll('[data-order-status]').forEach(sel=>sel.addEventListener('click', e=>e.stopPropagation()));
+  app.querySelectorAll('[data-order-status]').forEach(sel=>sel.addEventListener('change', e=>{ e.stopPropagation(); updateOrderStatus(sel.getAttribute('data-order-status'), sel.value); }));
+  { const statusFilterSel = document.getElementById('ordersStatusFilter');
+    if(statusFilterSel) statusFilterSel.addEventListener('change', e=>{ ordersStatusFilter = e.target.value; ordersPage = 1; render(); });
+  }
+  { const ordersSearchInput = document.getElementById('ordersSearchInput');
+    if(ordersSearchInput){
+      ordersSearchInput.addEventListener('input', (e)=>{
+        ordersSearch = e.target.value;
+        ordersPage = 1;
+        const caret = e.target.selectionStart;
+        render();
+        const el = document.getElementById('ordersSearchInput');
+        if(el){ el.focus(); el.setSelectionRange(caret, caret); }
+      });
+    }
+  }
+  app.querySelectorAll('[data-faq-toggle]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const i = b.getAttribute('data-faq-toggle');
+      const ans = document.getElementById('faqAnswer'+i);
+      const icon = document.getElementById('faqIcon'+i);
+      const isOpen = !ans.classList.contains('hidden');
+      ans.classList.toggle('hidden', isOpen);
+      icon.textContent = isOpen ? '+' : '−';
+    });
+  });
+
+  const confirmBtn = document.getElementById('confirmOrderBtn');
+  if(confirmBtn) confirmBtn.addEventListener('click', submitOrder);
+  const addProductBtn = document.getElementById('addProductBtn');
+  if(addProductBtn) addProductBtn.addEventListener('click', addProduct);
+  const saveWebhookBtn = document.getElementById('saveWebhookBtn');
+  if(saveWebhookBtn) saveWebhookBtn.addEventListener('click', saveWebhook);
+  const saveDeliveryBtn = document.getElementById('saveDeliveryBtn');
+  if(saveDeliveryBtn) saveDeliveryBtn.addEventListener('click', saveDeliveryDelay);
+  const unlockBtn = document.getElementById('unlockBtn');
+  if(unlockBtn) unlockBtn.addEventListener('click', adminLogin);
+  const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+  if(adminLogoutBtn) adminLogoutBtn.addEventListener('click', adminLogout);
+
+  const apImage = document.getElementById('apImage');
+  if(apImage){
+    apImage.addEventListener('change', (e)=>{
+      const files = Array.from(e.target.files || []).slice(0, 4 - pendingImages.length);
+      if(!files.length) return;
+      Promise.all(files.map(f=>resizeImageFile(f, 1200, 0.75).catch(()=>null))).then(results=>{
+        results.filter(Boolean).forEach(dataUrl=>{ if(pendingImages.length < 4) pendingImages.push(dataUrl); });
+        renderImagePreview();
+      });
+      e.target.value = ''; // permet de resélectionner les mêmes fichiers si besoin
+    });
+  }
+  renderImagePreview();
+
+  // ---- Recherche admin (filtre le tableau par nom/catégorie en direct) ----
+  const adminSearchInput = document.getElementById('adminSearchInput');
+  if(adminSearchInput){
+    adminSearchInput.addEventListener('input', (e)=>{
+      adminSearch = e.target.value;
+      adminPage = 1;
+      const caret = e.target.selectionStart;
+      render();
+      const el = document.getElementById('adminSearchInput');
+      if(el){ el.focus(); el.setSelectionRange(caret, caret); }
+    });
+  }
+
+  // ---- Tailles dynamiques du formulaire "Ajouter un article" ----
+  bindSizeRowEvents();
+  const addSizeRowBtn = document.getElementById('addSizeRowBtn');
+  if(addSizeRowBtn) addSizeRowBtn.addEventListener('click', ()=>{ apSizesDraft.push({size:'', qty:0}); renderSizesRows(); });
+  document.querySelectorAll('[data-sizes]').forEach(b=>b.addEventListener('click', ()=>editSizes(b.getAttribute('data-sizes'))));
+}
+function bindSizeRowEvents(){
+  const sizesRowsEl = document.getElementById('apSizesRows');
+  if(!sizesRowsEl) return;
+  sizesRowsEl.querySelectorAll('.ap-size-name').forEach(inp=>{
+    inp.addEventListener('input', ()=>{ apSizesDraft[parseInt(inp.getAttribute('data-size-idx'),10)].size = inp.value; });
+  });
+  sizesRowsEl.querySelectorAll('.ap-size-qty').forEach(inp=>{
+    inp.addEventListener('input', ()=>{ apSizesDraft[parseInt(inp.getAttribute('data-size-idx'),10)].qty = inp.value; });
+  });
+  sizesRowsEl.querySelectorAll('[data-remove-size-row]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const i = parseInt(b.getAttribute('data-remove-size-row'),10);
+      apSizesDraft.splice(i,1);
+      if(!apSizesDraft.length) apSizesDraft = [{size:'', qty:0}];
+      renderSizesRows();
+    });
+  });
+}
+// Ne redessine que le bloc "tailles" du formulaire admin, sans toucher au reste
+// (évite d'effacer les autres champs déjà remplis par l'admin).
+function renderSizesRows(){
+  const sizesRowsEl = document.getElementById('apSizesRows');
+  if(!sizesRowsEl) return;
+  sizesRowsEl.innerHTML = apSizesDraft.map((row,i)=>`
+    <div class="admin-size-row">
+      <input type="text" class="ap-size-name" data-size-idx="${i}" placeholder="Ex: M" maxlength="10" value="${escapeHtml(row.size)}">
+      <input type="number" class="ap-size-qty" data-size-idx="${i}" min="0" placeholder="Qté" value="${row.qty || ''}">
+      <button type="button" data-remove-size-row="${i}" title="Retirer cette taille">✕</button>
+    </div>
+  `).join('');
+  bindSizeRowEvents();
+}
+// Affiche la bande de miniatures des photos en attente d'ajout (formulaire admin), avec bouton de suppression par photo
+function renderImagePreview(){
+  const preview = document.getElementById('apImagePreview');
+  if(!preview) return;
+  preview.innerHTML = pendingImages.map((img,i)=>`
+    <div class="img-preview-item">
+      <img src="${img}">
+      <button type="button" data-remove-pending-img="${i}" aria-label="Retirer cette photo">✕</button>
+    </div>
+  `).join('');
+  preview.querySelectorAll('[data-remove-pending-img]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      pendingImages.splice(parseInt(b.getAttribute('data-remove-pending-img'),10), 1);
+      renderImagePreview();
+    });
+  });
+}
+
+document.addEventListener('click', (e)=>{
+  const routeBtn = e.target.closest('[data-route]');
+  if(routeBtn){
+    const filterVal = routeBtn.getAttribute('data-filter');
+    if(filterVal){ shopFilter = filterVal; shopPage = 1; }
+    navigate(routeBtn.getAttribute('data-route'));
+  }
+});
+document.getElementById('proAccessBtn').addEventListener('click', ()=>{
+  navigate('admin');
+});
+document.getElementById('currencyPick').addEventListener('change', (e)=>{
+  currentCurrency = e.target.value;
+  render();
+});
+document.getElementById('langPick').addEventListener('change', (e)=>{
+  currentLang = e.target.value;
+  render();
+});
+
+// ================= INIT =================
+(async function init(){
+  render(); // affichage immédiat avec les valeurs par défaut, sans attendre le stockage
+  if(!sb) noDbWarning();
+  await loadProducts();
+  await loadCart();
+  sanitizeCart();
+  await loadSettings();
+  if(sb){
+    try{
+      const {data:{session}} = await sb.auth.getSession();
+      if(session){ isAdmin = true; await loadAdminSettings(); await loadOrders(); }
+    }catch(e){ /* pas de session active */ }
+  }
+  render();
+  detectCurrencyByCountry();
+})();
+</script>
+</body>
+</html>
