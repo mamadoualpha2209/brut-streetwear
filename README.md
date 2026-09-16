@@ -14,6 +14,18 @@ The project explores the development of a clothing brand website with a clean in
 * Supabase integration
 * Clean and user-friendly interface
 
+## Project Goals
+
+This project was created to practice and improve my skills in:
+
+* Front-end web development
+* Responsive web design
+* JavaScript integration
+* Database integration with Supabase
+* Building a practical e-commerce project
+* Improving user experience and interface design
+
+
 ## Technologies
 
 * HTML
@@ -37,18 +49,33 @@ brut-streetwear/
 
 ## Getting Started
 
-Clone the repository:
+### 1. Clone the repository
 
 ```bash
-git clone YOUR_REPOSITORY_URL
+git clone https://github.com/mamadoualpha2209/brut-streetwear.git
 ```
 
-Open the project folder and launch the website locally.
+### 2. Open the project
 
-## Author
+Navigate to the project folder:
+
+```bash
+cd brut-streetwear
+```
+
+### 3. Launch the website
+
+Open the HTML file in your browser.
+
+You can also use a local development server such as Live Server in Visual Studio Code.
+
+## Notes
+
+The project is currently built as a single HTML file. Supabase is used for database-related functionality.
+
 ## Live Demo
 
 🔗 [Visit BRUT Streetwear](https://brut-streetwear.vercel.app/)
 
-
+## Author
 Mamadou Alpha Bah
