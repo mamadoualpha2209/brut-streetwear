@@ -79,3 +79,12 @@ The project is currently built as a single HTML file. Supabase is used for datab
 
 ## Author
 Mamadou Alpha Bah
+
+## License
+
+This project is publicly available for viewing and educational purposes.
+
+The source code is not licensed for reuse, modification, or redistribution without permission from the author.
+
+© 2026 Mamadou Alpha Bah. All rights reserved.
+
