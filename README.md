@@ -19,6 +19,16 @@ The project explores the development of a clothing brand website with a clean in
 * JavaScript
 * Supabase
 
+## Project Structure
+
+The project is currently built in a single HTML file, including the main interface, styling, and JavaScript functionality.
+
+```text
+brut-streetwear/
+└── index.html
+```
+
+
 ## Project Preview
 
 ![BRUT Streetwear Homepage](brut-homepage.png)
