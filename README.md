@@ -6,11 +6,13 @@ The project explores the development of a clothing brand website with a clean in
 
 ## Features
 
-* Modern streetwear interface
+* Modern streetwear e-commerce interface
 * Responsive design
 * Product presentation
-* Organized product sections
-* E-commerce-oriented user experience
+* Product categories
+* Shopping cart
+* Supabase integration
+* Clean and user-friendly interface
 
 ## Technologies
 
