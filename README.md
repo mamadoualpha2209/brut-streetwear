@@ -21,7 +21,7 @@ The project explores the development of a clothing brand website with a clean in
 
 ## Project Preview
 
-*Screenshots of the website will be added here.*
+![BRUT Streetwear Homepage](brut-homepage.png)
 
 ## Getting Started
 
